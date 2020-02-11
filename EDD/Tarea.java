@@ -6,11 +6,10 @@ public class Tarea {
         x[2] = 3;
         x[3] = 4;
         x[4] = 5;
-        int k = 8;
+        int k = 3;
 
         /**
-         * Para probar el inciso A System.out.println(incisoA(k));
-         * -
+         * Para probar el inciso A System.out.println(incisoA(k)); -
          */
 
         /*
@@ -32,6 +31,12 @@ public class Tarea {
         return true;
     }
 
+    /**
+     * Ejercicio b de la tarea
+     * 
+     * @param x
+     * @return numero faltante en un arreglo
+     */
     public static int incisoB(int[] x) {
         int longitud;
         int gauss;
@@ -57,30 +62,21 @@ public class Tarea {
      */
     public static int[] incisoC(int k, int[] x) {
         int[] tempX1 = new int[k];
-        int[] tempX2 = new int[x.length - k];
-        int tempK = k;
-
+        int tempK = k - 1;
+        int j = 0;
         for (int i = 0; i <= k - 1; i++) {
             tempX1[i] = x[i];
         }
-
-        for (int i = 0; i < x.length - k; i++) {
-            tempX2[i] = x[tempK];
-            tempK++;
+        for (int i = tempK + 1; i < x.length; i++) {
+            x[j] = x[i];
+            j++;
         }
-
-        for (int i = 0; i <= tempX2.length - 1; ++i) {
-            x[i] = tempX2[i];
-        }
-
-        tempK = k - 1;
-
         for (int i = 0; i < tempX1.length; i++) {
             x[tempK] = tempX1[i];
             tempK++;
         }
-
         return x;
+
     }
 
 }
