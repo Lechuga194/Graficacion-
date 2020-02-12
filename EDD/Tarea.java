@@ -1,26 +1,55 @@
 public class Tarea {
     public static void main(String[] args) {
-        int[] x = new int[5];
-        x[0] = 1;
-        x[1] = 2;
-        x[2] = 3;
-        x[3] = 4;
-        x[4] = 5;
-        int k = 3;
+        Object[] x = new Object[7];
+        x[0] = "a";
+        x[1] = "l";
+        x[2] = "a";
+        x[3] = "r";
+        x[4] = "o";
+        x[5] = "t";
+        x[6] = "a";
 
-        /**
-         * Para probar el inciso A System.out.println(incisoA(k)); -
-         */
+        Object[] y = new Object[4];
+        y[0] = 1;
+        y[1] = 2;
+        y[2] = 3;
+        y[3] = 4;
+        int k = 2;
 
-        /*
-         * Para probar inciso B System.out.println(incisoB(x));
-         */
+        Object[] a = incisoC(k, y);
 
-        /*
-         * Para probar inciso C int[] a = incisoC(k, x);
-         * 
-         * for (int item : a) { System.out.println(item); }
-         */
+        for (Object item : a) {
+            System.out.println(item);
+        }
+    }
+
+    /**
+     * Ejercicio C de la tarea 01
+     * 
+     * @param k
+     * @param x
+     * @return Arreglo modificado
+     */
+    public static Object[] incisoC(int k, Object[] x) {
+        Object[] tempX = new Object[k];
+        int j = 0;
+        int pos = x.length - k;
+
+        // Copia los k elementos a un temporal
+        for (int i = 0; i < k; i++) {
+            tempX[i] = x[i];
+        }
+        // mueve los sobrantes al inicio del original
+        for (int i = k; i < x.length; i++) {
+            x[j] = x[i];
+            j++;
+        }
+        // concatena el temporal con el original a partir de la posicion x.length - k
+        for (int i = 0; i < tempX.length; i++) {
+            x[pos] = tempX[i];
+            pos++;
+        }
+        return x;
     }
 
     public static boolean incisoA(int x) {
@@ -38,45 +67,13 @@ public class Tarea {
      * @return numero faltante en un arreglo
      */
     public static int incisoB(int[] x) {
-        int longitud;
-        int gauss;
-        int sumaArreglo = 0;
-        int faltante;
-
+        int longitud, gauss, sumaArreglo = 0;
         longitud = x.length;
         gauss = (longitud * (longitud + 1)) / 2;
-
         for (int item : x) {
             sumaArreglo += item;
         }
-
-        return faltante = gauss - sumaArreglo;
-    }
-
-    /**
-     * Ejercicio C de la tarea 01
-     * 
-     * @param k
-     * @param x
-     * @return Arreglo modificado
-     */
-    public static int[] incisoC(int k, int[] x) {
-        int[] tempX1 = new int[k];
-        int tempK = k - 1;
-        int j = 0;
-        for (int i = 0; i <= k - 1; i++) {
-            tempX1[i] = x[i];
-        }
-        for (int i = tempK + 1; i < x.length; i++) {
-            x[j] = x[i];
-            j++;
-        }
-        for (int i = 0; i < tempX1.length; i++) {
-            x[tempK] = tempX1[i];
-            tempK++;
-        }
-        return x;
-
+        return gauss - sumaArreglo;
     }
 
 }
