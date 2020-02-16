@@ -36,7 +36,7 @@ function distancia(x1, x2, y1, y2) {
  * @param {Coordenada x del cuarto punto} P4_x
  * @param {Coordenada y del cuarto punto} P4_y
  */
-function curva(ctx, P1_x, P1_y, P2_x, P2_y, P3_x, P3_y, P4_x, P4_y, color) {
+function curva(ctx, P1_x, P1_y, P2_x, P2_y, P3_x, P3_y, P4_x, P4_y) {
   //Colocamos el puntero en el punto P1
   ctx.moveTo(P1_x, P1_y);
   ctx.lineWidth = 5;
@@ -71,7 +71,7 @@ function curva(ctx, P1_x, P1_y, P2_x, P2_y, P3_x, P3_y, P4_x, P4_y, color) {
       ctx.beginPath();
       ctx.lineTo(P1_x, P1_y);
       ctx.lineTo(P4_x, P4_y);
-      ctx.strokeStyle = color;
+      ctx.strokeStyle = "white";
       ctx.stroke();
 
       //Reemplazando P1 por P4
@@ -92,6 +92,7 @@ function curva(ctx, P1_x, P1_y, P2_x, P2_y, P3_x, P3_y, P4_x, P4_y, color) {
 //Orejas
 curva(ctx, 320, 150, 250, 67, 96, 800, 0, 0);
 curva(ctx, 450, 150, 524, 77, 680, 800, 0, 0);
+curva(ctx, 330, 170, 422, 170, 450, 175);
 
 //Ojos
 curva(ctx, 260, 260, 290, 240, 321, 275, 0, 0);
@@ -104,3 +105,7 @@ curva(ctx, 397, 282, 414, 307, 440, 250, 0, 0);
 curva(ctx, 397, 282, 374, 307, 355, 250, 0, 0);
 
 //Bigotes
+curva(ctx, 500, 283, 525, 294, 550, 275, 0, 0);
+curva(ctx, 500, 293, 525, 308, 550, 290, 0, 0);
+curva(ctx, 280, 280, 260, 295, 225, 265, 0, 0);
+curva(ctx, 280, 290, 260, 305, 225, 285, 0, 0);
