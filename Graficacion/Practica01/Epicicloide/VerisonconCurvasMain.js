@@ -23,15 +23,6 @@ ctx.strokeStyle = "white";
 ctx.lineWidth = 1;
 ctx.save();
 ctx.translate(canvas.width / 2, canvas.height / 2);
-// function epicicloide(k) {
-//   r = 10;
-//   for (let i = 0; i <= 360; i++) {
-//     x = r * (k + 1) * Math.cos(i) - r * Math.cos((k + 1) * i);
-//     y = r * (k + 1) * Math.sin(i) - r * Math.sin((k + 1) * i);
-//     ctx.lineTo(x, y);
-//     ctx.stroke();
-//   }
-// }
 
 function epicicloide(k) {
   r = 10;
