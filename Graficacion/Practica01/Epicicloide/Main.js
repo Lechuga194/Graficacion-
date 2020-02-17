@@ -3,38 +3,42 @@
  * 314325749
  * joselechuga194@ciencias.unam.mx
  */
-
+let stack = [];
 let canvas = this.document.getElementById("myCanvas");
 let ctx = canvas.getContext("2d");
 
+//Dibuja las lineas del eje
+ctx.beginPath();
+ctx.setLineDash([4, 4]);
+ctx.strokeStyle = "rgb(135, 174, 189)";
+ctx.moveTo(canvas.width / 2, 0);
+ctx.lineTo(canvas.width / 2, canvas.height);
+ctx.moveTo(0, canvas.height / 2);
+ctx.lineTo(canvas.width, canvas.height / 2);
+ctx.stroke();
+
+//Asigna propiedades para las lineas de la epicicloide
+ctx.beginPath();
+ctx.setLineDash([]);
+ctx.strokeStyle = "white";
+ctx.lineWidth = 1;
+ctx.save();
+
+//Translada la epicicloide al origen
+ctx.translate(canvas.width / 2, canvas.height / 2);
+
 /**
- * Para determinar una epicicloide es necesario establecer dos radios
- * r = que corresponde al círculo móvil (el epiciclo)
- * R = kr correspondiente al radio del círculo fijo.
- *
- * Las ecuaciones paramétricas que definen una epicicloide son las siguientes:
- *  x(θ) = r(k + 1) cos(θ) − r cos((k + 1) θ)
- *  y(θ) = r(k + 1) sin(θ) − r sin((k + 1) θ)
+ * funcion que dibuja la epicicloide de k iteraciones
+ * @param {numero de iteracion sobre la circunferencia} k
  */
-
-function epicicloide(radioMovil, k) {
-  const r = radioMovil * k;
-  let test = [];
-  let i = 0;
-  let n = 0;
-
-  do {
-    // xn = r * (k + 1) * Math.cos(n) - r * Math.cos((k + 1) * n);
-    // yn = r * (k + 1) * Math.sin(n) - r * Math.sin((k + 1) * n);
-    xn = console.log(`X=${xn}, Y=${yn}`);
-    i++;
-    n++;
-
-    ctx.beginPath();
-    ctx.lineTo(xn, yn);
-    ctx.strokeStyle = "white";
+function epicicloide(k) {
+  r = 10;
+  for (let i = 0; i <= 360; i++) {
+    x = r * (k + 1) * Math.cos(i) - r * Math.cos((k + 1) * i);
+    y = r * (k + 1) * Math.sin(i) - r * Math.sin((k + 1) * i);
+    ctx.lineTo(x, y);
     ctx.stroke();
-  } while (i < 100);
+  }
 }
 
-epicicloide(3, 2);
+epicicloide(2);
