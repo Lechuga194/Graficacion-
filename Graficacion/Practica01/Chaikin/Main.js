@@ -87,7 +87,10 @@ function curva(ctx, P1_x, P1_y, P2_x, P2_y, P3_x, P3_y, P4_x, P4_y) {
   } while (stack.length != 0);
 }
 
-//Puntos para crear un gatitokawai
+//Puntos para crear un gatitokawaiiiiiiii
+
+//Hace redonda el final de la linea
+ctx.lineCap = "round";
 
 //Orejas
 curva(ctx, 320, 150, 250, 67, 96, 800, 0, 0);

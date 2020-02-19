@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Epicicloides</title>
+    <link rel="stylesheet" type="text/css" href="style.css" />
+    <link
+      href="https://fonts.googleapis.com/css?family=Righteous&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div id="page-container">
+      <div id="content-wrap">
+        <h1>Epicicloides</h1>
+        <div class="container">
+          <canvas id="myCanvas" width="800" height="600"></canvas>
+        </div>
+        <div class="container">
+          <form id="formulario">
+            <label for="radio">Radio</label>
+            <input
+              id="radio"
+              type="number"
+              name="radio"
+              autofocus="autofocus"
+              required="required"
+            />
+            <label for="subdivisiones">subdivisiones</label>
+            <input
+              id="subdivisiones"
+              type="number"
+              name="subdivisiones"
+              required="required"
+            />
+          </form>
+          <button id="generar" type="submit" form="formulario" value="generar">
+            Generar
+          </button>
+          <button id="limpiar" value="limpiar">Limpiar</button>
+        </div>
+      </div>
+      <footer class="footer" id="footer">
+        <p>
+          Lechuga Martinez Jose Eduardo | 314325749 |
+          joselechuga194@ciencias.unam.mx
+        </p>
+      </footer>
+    </div>
+    <script type="text/javascript" src="Main.js"></script>
+  </body>
+</html>
