@@ -1,13 +1,13 @@
 /**
- * Lechuga Martinez Jose Eduardo
- * 314325749
- * joselechuga194@gmail.com
+ * Amaya López Dulce Fernanda | 314195856
+ * Lechuga Martinez Jose Eduardo | 314325749
+ * Practica 02 - Graficación por computadora 2020-2
  */
 
 /**
  * Clase para la definicion y operacion de vectores
  */
-class Vector3 {
+export class Vector3 {
   constructor(x = 0, y = 0, z = 0) {
     this.x = x;
     this.y = y;
@@ -32,7 +32,8 @@ class Vector3 {
    * @returns {Vector3} Copia del vector
    */
   clone() {
-    return new Vector3(this.x, this.y, this.y);
+    const clone = this;
+    return clone;
   }
 
   /**
@@ -173,7 +174,7 @@ class Vector3 {
 //  * Test clon
 //  */
 // cloneVect = v1.clone();
-// console.log(cloneVect);
+// console.log("Clon de 201", cloneVect);
 
 // /**
 //  * Test cross
