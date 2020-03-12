@@ -265,6 +265,45 @@ export class Matrix3 {
     return a00 * a11 - a01 * a10;
   }
 
+  /*
+   * @param { Matrix3 } m1
+   * @param { Matrix3 } m2
+   * @return { Boolean }
+   */
+  static equals(m1, m2) {
+    const epsilon = 0.000001;
+    const equa11 = m1.a11 - m2.a11;
+    const equa12 = m1.a12 - m2.a12;
+    const equa13 = m1.a13 - m2.a13;
+    const equa21 = m1.a21 - m2.a21;
+    const equa22 = m1.a22 - m2.a22;
+    const equa23 = m1.a23 - m2.a23;
+    const equa31 = m1.a31 - m2.a31;
+    const equa32 = m1.a32 - m2.a32;
+    const equa33 = m1.a33 - m2.a33;
+
+    return (
+      equa11 < epsilon &&
+      equa11 >= 0 &&
+      equa12 < epsilon &&
+      equa12 >= 0 &&
+      equa13 < epsilon &&
+      equa13 >= 0 &&
+      equa21 < epsilon &&
+      equa21 >= 0 &&
+      equa22 < epsilon &&
+      equa22 >= 0 &&
+      equa23 < epsilon &&
+      equa23 >= 0 &&
+      equa31 < epsilon &&
+      equa31 >= 0 &&
+      equa32 < epsilon &&
+      equa32 >= 0 &&
+      equa33 < epsilon &&
+      equa33 >= 0
+    );
+  }
+
   /**
    * Función que devuelve verdadero en caso de que sus argumentos sean exactamente iguales, y falso en caso contrario.
    * @param {Matrix3} m1
@@ -273,15 +312,15 @@ export class Matrix3 {
    */
   static exactEquals(m1, m2) {
     return (
-      m1.a00 == m2.a00 &&
-      m1.a01 == m2.a01 &&
-      m1.a02 == m2.a02 &&
-      m1.a10 == m2.a10 &&
       m1.a11 == m2.a11 &&
       m1.a12 == m2.a12 &&
-      m1.a20 == m2.a20 &&
+      m1.a13 == m2.a13 &&
       m1.a21 == m2.a21 &&
-      m1.a22 == m2.a22
+      m1.a22 == m2.a22 &&
+      m1.a23 == m2.a23 &&
+      m1.a31 == m2.a31 &&
+      m1.a32 == m2.a32 &&
+      m1.a33 == m2.a33
     );
   }
 
