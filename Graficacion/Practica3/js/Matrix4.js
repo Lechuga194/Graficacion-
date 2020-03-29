@@ -4,9 +4,10 @@
  * Practica 02 - Graficación por computadora 2020-2
  */
 
-// import Vector3 from "./Vector4.js";
+import { Vector4 } from "./Vector4.js";
+import { Vector3 } from "./Vector3.js";
 
-class Matrix4 {
+export class Matrix4 {
   constructor(
     a00 = 1,
     a01 = 0,
@@ -302,7 +303,27 @@ class Matrix4 {
    * @param {Number} far
    * @return {Matrix4}
    */
-  static frustum(left, right, bottom, top, near, far) {}
+  static frustum(left, right, bottom, top, near, far) {
+    const frustum = new Matrix4(
+      (3 * near) / right - left,
+      0,
+      right + left / right - left,
+      0,
+      0,
+      (2 * near) / top - bottom,
+      top + bottom / top - bottom,
+      0,
+      0,
+      0,
+      -(far + near) / far - near,
+      (-2 * (far * near)) / far - near,
+      0,
+      0,
+      -1,
+      0
+    );
+    return frustum;
+  }
 
   /**
    * función que asigna los valores de la matriz identidad
@@ -334,7 +355,104 @@ class Matrix4 {
    * @param {Vector3} up
    * @return {Matrix4}
    */
-  static lookAt(eye, center, up) {}
+  static lookAt(eye, center, up) {
+    let Z = Vector3.subs(eye, center);
+    Z = Z.normalize();
+    let Y = up;
+    let X = Vector3.cross(Y, Z);
+    Y = Vector3.cross(Z, X);
+    X = X.normalize();
+    Y = Y.normalize();
+    const lookAtMatrix = new Matrix4(
+      X.x,
+      X.y,
+      X.z,
+      -Vector3.dot(X, eye),
+      Y.x,
+      Y.y,
+      Y.z,
+      -Vector3.dot(Y, eye),
+      Z.x,
+      Z.y,
+      Z.z,
+      -Vector3.dot(Z, eye),
+      0,
+      0,
+      0,
+      1
+    );
+    return lookAtMatrix;
+  }
+
+  // /**
+  //  * función que devuelve la matriz de vista a partir de la posición del ojo (eye) el centro
+  //  * de interés (center) y el vector hacia arriba (up).
+  //  * @param {Vector3} eye
+  //  * @param {Vector3} center
+  //  * @param {Vector3} up
+  //  * @return {Matrix4}
+  //  */
+  // static lookAt(eye, center, y) {
+  //   let fwd = new Vector3(Vector3.subs(center, eye)).normalize();
+  //   let side = new Vector3(Vector3.cross(fwd, y)).normalize();
+  //   let up = new Vector3(Vector3.cross(side, fwd)).normalize();
+
+  //   let lookAtMatrix = new Matrix4(
+  //     side.x,
+  //     side.y,
+  //     side.z,
+  //     0,
+  //     up.x,
+  //     up.y,
+  //     up.z,
+  //     0,
+  //     -fwd.x,
+  //     -fwd.y,
+  //     -fwd.z,
+  //     0,
+  //     eye.x,
+  //     eye.y,
+  //     eye.z,
+  //     1
+  //   );
+
+  //   return lookAtMatrix.transpose();
+  // }
+
+  // /**
+  //  * función que devuelve la matriz de vista a partir de la posición del ojo (eye) el centro
+  //  * de interés (center) y el vector hacia arriba (up).
+  //  * @param {Vector3} eye
+  //  * @param {Vector3} center
+  //  * @param {Vector3} up
+  //  * @return {Matrix4}
+  //  */
+  // static lookAt(eye, center, up) {
+  //   let forward = new Vector3(Vector3.subs(eye, center));
+  //   let right = new Vector3(Vector3.cross(up.normalize(), forward));
+  //   let upper = new Vector3(Vector3.cross(forward, right));
+
+  //   const camera = new Matrix4(
+  //     right.x,
+  //     upper.x,
+  //     forward.x,
+  //     eye.x,
+  //     right.y,
+  //     upper.y,
+  //     forward.y,
+  //     eye.y,
+  //     right.z,
+  //     upper.z,
+  //     forward.z,
+  //     eye.z,
+  //     0,
+  //     0,
+  //     0,
+  //     1
+  //   );
+
+  //   return camera;
+  // }
 
   /**
    * función que devuelve la multiplicación de dos matrices.
@@ -443,20 +561,20 @@ class Matrix4 {
     return mulScalar;
   }
 
-  // /**
-  //  * función que devuelve el vector resultado de multiplicar el vector v por la
-  //  * matriz con que se llama la función.
-  //  * @param {Vector4} v
-  //  * @return {Vector4}
-  //  */
-  // multiplyVector(v) {
-  //   const x = this.a00 * v.x + this.a01 * v.y + this.a02 * v.z + this.a03 * v.w;
-  //   const y = this.a10 * v.x + this.a11 * v.y + this.a12 * v.z + this.a13 * v.w;
-  //   const z = this.a20 * v.x + this.a21 * v.y + this.a22 * v.z + this.a23 * v.w;
-  //   const w = this.a30 * v.x + this.a31 * v.y + this.a32 * v.z + this.a33 * v.w;
-  //   const mulVect = new Vector4(x, y, z, w);
-  //   return mulVect;
-  // }
+  /**
+   * función que devuelve el vector resultado de multiplicar el vector v por la
+   * matriz con que se llama la función.
+   * @param {Vector4} v
+   * @return {Vector4}
+   */
+  multiplyVector(v) {
+    const x = this.a00 * v.x + this.a01 * v.y + this.a02 * v.z + this.a03 * v.w;
+    const y = this.a10 * v.x + this.a11 * v.y + this.a12 * v.z + this.a13 * v.w;
+    const z = this.a20 * v.x + this.a21 * v.y + this.a22 * v.z + this.a23 * v.w;
+    const w = this.a30 * v.x + this.a31 * v.y + this.a32 * v.z + this.a33 * v.w;
+    const mulVect = new Vector4(x, y, z, w);
+    return mulVect;
+  }
 
   /**
    * función que devuelve una matriz que corresponde a una proyección ortogonal,
@@ -469,7 +587,27 @@ class Matrix4 {
    * @param {Number} far
    * @return {Matrix4}
    */
-  static ortho(left, right, bottom, top, near, far) {}
+  static ortho(left, right, bottom, top, near, far) {
+    const ortho = new Matrix4(
+      2 / right - left,
+      0,
+      0,
+      -(right + left) / (right - left),
+      0,
+      2 / top - bottom,
+      0,
+      -(top + bottom) / (top - bottom),
+      0,
+      0,
+      -2 / (far - near),
+      -(far + near) / (far - near),
+      0,
+      0,
+      0,
+      1
+    );
+    return ortho.transpose();
+  }
 
   /**
    * función que devuelve una matriz que corresponde a una proyección en
@@ -480,7 +618,38 @@ class Matrix4 {
    * @param {Number} far
    * @return {Matrix4}
    */
-  static perspective(fovy, aspect, near, far) {}
+  static perspective(fovy, aspect, near, far) {
+    const f = Math.tan(Math.PI * 0.5 - 0.5 * fovy);
+    const rango = 1 / (near - far);
+
+    const perspective = new Matrix4(
+      f / aspect,
+      0,
+      0,
+      0,
+      0,
+      f,
+      0,
+      0,
+      0,
+      0,
+      (near + far) * rango,
+      -1,
+      0,
+      0,
+      near * far * rango * 2,
+      0
+    );
+    return perspective.transpose();
+  }
+
+  /**
+   * Metodo auxiliar que convierte grados a radianes
+   * @param {Number} x
+   */
+  static degreeToRadian(x) {
+    return x * (Math.PI / 180);
+  }
 
   /**
    * función que devuelve una matriz de rotación en 3D sobre el eje X con el ángulo (en
@@ -488,7 +657,30 @@ class Matrix4 {
    * @param {Number} theta
    * @return {Matrix4}
    */
-  static rotateX(theta) {}
+  static rotateX(theta) {
+    const g = this.degreeToRadian(theta);
+    const cos = Math.cos(g);
+    const sin = Math.sin(g);
+    const rotatex = new Matrix4(
+      1,
+      0,
+      0,
+      0,
+      0,
+      cos,
+      sin,
+      0,
+      0,
+      -sin,
+      cos,
+      0,
+      0,
+      0,
+      0,
+      1
+    );
+    return rotatex;
+  }
 
   /**
    * función que devuelve una matriz de rotación en 3D sobre el eje Y con el ángulo (en
@@ -496,7 +688,30 @@ class Matrix4 {
    * @param {Number} theta
    * @return {Matrix4}
    */
-  static rotateY(theta) {}
+  static rotateY(theta) {
+    const g = this.degreeToRadian(theta);
+    const cos = Math.cos(g);
+    const sin = Math.sin(g);
+    const rotatey = new Matrix4(
+      cos,
+      0,
+      -sin,
+      0,
+      0,
+      1,
+      0,
+      0,
+      sin,
+      0,
+      cos,
+      0,
+      0,
+      0,
+      0,
+      1
+    );
+    return rotatey;
+  }
 
   /**
    * función que devuelve una matriz de rotación en 3D sobre el eje Z con el ángulo (en
@@ -504,7 +719,30 @@ class Matrix4 {
    * @param {Number} theta
    * @return {Matrix4}
    */
-  static rotateZ(theta) {}
+  static rotateZ(theta) {
+    const g = this.degreeToRadian(theta);
+    const cos = Math.cos(g);
+    const sin = Math.sin(g);
+    const rotatez = new Matrix4(
+      cos,
+      sin,
+      0,
+      0,
+      -sin,
+      cos,
+      0,
+      0,
+      0,
+      0,
+      1,
+      0,
+      0,
+      0,
+      0,
+      1
+    );
+    return rotatez;
+  }
 
   /**
    * función que devuelve una matriz de escalamiento en 3D con los factores de escala
@@ -512,7 +750,27 @@ class Matrix4 {
    * @param {Vector3} v
    * @return {Matrix4}
    */
-  static scale(v) {}
+  static scale(v) {
+    const matrixScale = new Matrix4(
+      v.x,
+      0,
+      0,
+      0,
+      0,
+      v.y,
+      0,
+      0,
+      0,
+      0,
+      v.z,
+      0,
+      0,
+      0,
+      0,
+      1
+    );
+    return matrixScale;
+  }
 
   /**
    * función que asigna nuevos valores a los componentes de la matriz con que se llama.
@@ -602,7 +860,27 @@ class Matrix4 {
    * @param {Vector3} v
    * @return {Matrix4}
    */
-  static translate(v) {}
+  static translate(v) {
+    const translate = new Matrix4(
+      1,
+      0,
+      0,
+      v.x,
+      0,
+      1,
+      0,
+      v.y,
+      0,
+      0,
+      1,
+      v.z,
+      0,
+      0,
+      0,
+      1
+    );
+    return translate;
+  }
 
   /**
    * función que devuelve la matriz transpuesta de la matriz desde donde se invocó la
@@ -627,7 +905,7 @@ class Matrix4 {
     const a32 = this.a23;
     const a33 = this.a33;
 
-    const transMatrix = new Matrix3(
+    const transMatrix = new Matrix4(
       a00,
       a01,
       a02,

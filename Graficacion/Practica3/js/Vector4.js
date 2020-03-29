@@ -4,7 +4,7 @@
  * Practica 02 - Graficación por computadora 2020-2
  */
 
-export default class Vector4 {
+export class Vector4 {
   constructor(x = 0, y = 0, z = 0, w = 0) {
     this.x = x;
     this.y = y;
