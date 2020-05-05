@@ -1,7 +1,7 @@
 // Se importan las clases a utilizar
-import Vector3 from "./Vector3.js";
-import Vector4 from "./Vector4.js";
-import Matrix4 from "./Matrix4.js";
+import { Vector3 } from "./Vector3.js";
+import { Vector4 } from "./Vector4.js";
+import { Matrix4 } from "./Matrix4.js";
 
 window.addEventListener("load", function(evt) {
   let canvas = document.getElementById("the_canvas");

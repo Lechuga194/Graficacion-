@@ -1,0 +1,35 @@
+body {
+  background: #e1f2fb;
+  color: black;
+  margin: 0px 0px 0px 0px;
+  padding-bottom: 0px;
+  font-family: "Poppins", sans-serif;
+}
+
+canvas {
+  margin: 10px 0px 10px 10px;
+  background: #f1f9f9;
+}
+
+.container {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: 0.1fr 1fr 0.2fr;
+  justify-items: center;
+}
+
+footer {
+  background: #f3dfe3;
+  text-align: center;
+}
+
+.inputVariables {
+  text-align: center;
+  margin-bottom: 20px;
+  padding-bottom: 20px;
+}
+
+h1 {
+  text-align: center;
+}
+/* botones  f3dfe3*/

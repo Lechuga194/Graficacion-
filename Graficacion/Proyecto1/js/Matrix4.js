@@ -322,7 +322,7 @@ export class Matrix4 {
       -1,
       0
     );
-    return frustum;
+    return frustum.transpose();
   }
 
   /**
@@ -592,21 +592,21 @@ export class Matrix4 {
       2 / right - left,
       0,
       0,
-      -(right + left) / (right - left),
+      0,
       0,
       2 / top - bottom,
       0,
-      -(top + bottom) / (top - bottom),
+      0,
       0,
       0,
       -2 / (far - near),
+      0,
+      -(right + left) / (right - left),
+      -(top + bottom) / (top - bottom),
       -(far + near) / (far - near),
-      0,
-      0,
-      0,
       1
     );
-    return ortho.transpose();
+    return ortho;
   }
 
   /**
@@ -644,23 +644,14 @@ export class Matrix4 {
   }
 
   /**
-   * Metodo auxiliar que convierte grados a radianes
-   * @param {Number} x
-   */
-  static degreeToRadian(x) {
-    return x * (Math.PI / 180);
-  }
-
-  /**
    * función que devuelve una matriz de rotación en 3D sobre el eje X con el ángulo (en
    * radianes) dado por el parámetro rad.
    * @param {Number} theta
    * @return {Matrix4}
    */
   static rotateX(theta) {
-    const g = this.degreeToRadian(theta);
-    const cos = Math.cos(g);
-    const sin = Math.sin(g);
+    const cos = Math.cos(theta);
+    const sin = Math.sin(theta);
     const rotatex = new Matrix4(
       1,
       0,
@@ -689,9 +680,8 @@ export class Matrix4 {
    * @return {Matrix4}
    */
   static rotateY(theta) {
-    const g = this.degreeToRadian(theta);
-    const cos = Math.cos(g);
-    const sin = Math.sin(g);
+    const cos = Math.cos(theta);
+    const sin = Math.sin(theta);
     const rotatey = new Matrix4(
       cos,
       0,
@@ -720,9 +710,8 @@ export class Matrix4 {
    * @return {Matrix4}
    */
   static rotateZ(theta) {
-    const g = this.degreeToRadian(theta);
-    const cos = Math.cos(g);
-    const sin = Math.sin(g);
+    const cos = Math.cos(theta);
+    const sin = Math.sin(theta);
     const rotatez = new Matrix4(
       cos,
       sin,

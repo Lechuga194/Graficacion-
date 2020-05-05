@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Proyecto | Graficacion</title>
+    <script type="module" src="./js/Main.js"></script>
+    <link rel="stylesheet" href="css/index.css" type="text/css" />
+    <link
+      href="https://fonts.googleapis.com/css?family=Poppins&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+
+  <body>
+    <h1>Visualizador de archivos OBJ</h1>
+    <div class="container">
+      <div id="inputFile">
+        <form enctype="multipart/form-data">
+          <label for="file">Introduce el archivo .Obj</label>
+          <input id="myFile" type="file" name="file" />
+        </form>
+      </div>
+      <div id="drawArea">
+        <canvas id="the_canvas" width="640" height="480"></canvas>
+      </div>
+      <div id="InputVaribles">
+        <form action="" method="POST">
+          <p>Posición de la cámara</p>
+          <label for="camx">X:</label>
+          <input
+            class="inputXYZ"
+            id="camaraX"
+            type="number"
+            name="camx"
+            value="0"
+            required="required"
+          />
+          <label for="camy">Y:</label>
+          <input
+            class="inputXYZ"
+            id="camaraY"
+            type="number"
+            name="camy"
+            value="0"
+            required="required"
+          />
+          <label for="camz">Z:</label>
+          <input
+            class="inputXYZ"
+            id="camaraZ"
+            type="number"
+            name="camz"
+            value="3"
+            required="required"
+          />
+
+          <p>Posición del centro de interés</p>
+          <label for="interx">X:</label>
+          <input
+            class="inputXYZ"
+            id="interesX"
+            type="number"
+            name="interx"
+            value="0"
+            required="required"
+          />
+          <label for="intery">Y:</label>
+          <input
+            class="inputXYZ"
+            id="interesY"
+            type="number"
+            name="intery"
+            value="0"
+            required="required"
+          />
+          <label for="interz">Z:</label>
+          <input
+            class="inputXYZ"
+            id="interesZ"
+            type="number"
+            name="interz"
+            value="0"
+            required="required"
+          />
+        </form>
+      </div>
+    </div>
+    <footer>
+      <p>
+        Amaya Lopez Dulce Fernanda | 314325749 | amaya.211@ciencias.unam.mx
+      </p>
+      <p>
+        Lechuga Martinez Jose Eduardo | 314325749 |
+        joselechuga194@ciencias.unam.mx
+      </p>
+    </footer>
+  </body>
+</html>
