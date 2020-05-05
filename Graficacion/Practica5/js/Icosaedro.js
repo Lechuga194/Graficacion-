@@ -5,7 +5,6 @@
  */
 
 import Matrix4 from "./Matrix4.js";
-import Utils from "./Utils.js";
 import Vector3 from "./Vector3.js";
 import Vector4 from "./Vector4.js";
 
@@ -116,29 +115,24 @@ export default class Icosaedro {
     }
 
     /**
-   * Metodo para obtener las normales
-   * @param {Array} vertices
-   */
+    * Metodo para obtener las normales
+    * @param {Array} vertices
+    */
     getNormals(vertices) {
         let normals = [];
-        let v1, v2, v3, n;
 
         for (let i = 0; i < vertices.length; i += 9) {
             // se crean arreglos de tres elementos para representar cada vértice y simplificar los cálculos
-            v1 = [vertices[i], vertices[i + 1], vertices[i + 2]];
-            v2 = [vertices[i + 3], vertices[i + 4], vertices[i + 5]];
-            v3 = [vertices[i + 6], vertices[i + 7], vertices[i + 8]];
+            let v1 = new Vector3(vertices[i], vertices[i + 1], vertices[i + 2]);
+            let v2 = new Vector3(vertices[i + 3], vertices[i + 4], vertices[i + 5]);
+            let v3 = new Vector3(vertices[i + 6], vertices[i + 7], vertices[i + 8]);
 
-            // la normal se calcula como el producto cruz de dos vectores sobre el plano que define el triángulo determinado por los vertices v1, v2 y v3
-            n = Utils.normalize(
-                Utils.cross(Utils.subtract(v1, v2), Utils.subtract(v2, v3))
-            );
+            let vAux = Vector3.cross(Vector3.subs(v1, v2), Vector3.subs(v2, v3));
+            let n = vAux.normalize().toArray();
 
             // como se está usando flat shading los tres vértices tiene la misma normal asociada
             normals.push(n[0], n[1], n[2], n[0], n[1], n[2], n[0], n[1], n[2]);
         }
-
-        console.log("normales", normals);
         return normals;
     }
 
@@ -172,7 +166,6 @@ export default class Icosaedro {
             );
         }
 
-        console.log("vertices", vertices)
         return vertices;
     }
 

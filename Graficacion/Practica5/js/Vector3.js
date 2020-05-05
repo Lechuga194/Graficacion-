@@ -15,6 +15,13 @@ export default class Vector3 {
   }
 
   /**
+   * Regresa el vector como arreglo
+   */
+  toArray() {
+    return [this.x, this.y, this.z];
+  }
+
+  /**
    * Metodo que suma dos vectores dados
    * @param {Vector3} u
    * @param {Vector3} v

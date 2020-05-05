@@ -2,7 +2,6 @@
 import Matrix4 from "./Matrix4.js";
 import Vector3 from "./Vector3.js";
 
-import Utils from "./Utils.js";
 import Cilindro from "./Cilindro.js";
 import Cono from "./Cono.js";
 import Dodecaedro from "./Dodecaedro.js";
@@ -23,15 +22,25 @@ window.addEventListener("load", function (evt) {
   // si el navegador no soporta WebGL la variable gl no está definida
   if (!gl) throw "WebGL no soportado";
 
-  //Creamos el programa con los shaders
+  // se obtiene la referencia al checkbox de iluminacion
+  let especular = document.getElementById("especular_ckbx");
+
+  //Creamos el programa para iluminacion difusa
   let program = createProgram(
     gl,
-    createShader(gl, gl.VERTEX_SHADER, document.getElementById("2d-vertex-shader").text),
-    createShader(gl, gl.FRAGMENT_SHADER, document.getElementById("2d-fragment-shader").text)
+    createShader(gl, gl.VERTEX_SHADER, document.getElementById("difusa_2d-vertex-shader").text),
+    createShader(gl, gl.FRAGMENT_SHADER, document.getElementById("difusa_2d-fragment-shader").text)
   );
 
-  //Este objeto se lo pasaremos a la funcion draw de cada figura
-  let shader_locations = {
+  //Creamos el programa para iluminacion especular
+  let especular_program = createProgram(
+    gl,
+    createShader(gl, gl.VERTEX_SHADER, document.getElementById("especular-2d-vertex-shader").text),
+    createShader(gl, gl.FRAGMENT_SHADER, document.getElementById("especular-2d-fragment-shader").text)
+  );
+
+  //Este objeto se lo pasaremos a la funcion draw de cada figura (Difusa)
+  let difusa_shader_locations = {
     positionAttribute: gl.getAttribLocation(program, "a_position"),
     colorAttribute: gl.getAttribLocation(program, "a_color"),
     normalAttribute: gl.getAttribLocation(program, "a_normal"),
@@ -41,12 +50,23 @@ window.addEventListener("load", function (evt) {
     colorUniformLocation: gl.getUniformLocation(program, "u_color"),
   }
 
-  // // se construye una referencia al attribute "a_position" definido en el shader
-  // let positionAttributeLocation = gl.getAttribLocation(program, "a_position");
-  // let colorUniformLocation = gl.getUniformLocation(program, "u_color");
-  // let PVM_matrixLocation = gl.getUniformLocation(program, "u_PVM_matrix");
+  //Este objeto se lo pasaremos a la funcion draw de cada figura (Especular)
+  let especular_shader_locations = {
+    positionAttribute: gl.getAttribLocation(especular_program, "a_position"),
+    colorAttribute: gl.getAttribLocation(especular_program, "a_color"),
+    normalAttribute: gl.getAttribLocation(especular_program, "a_normal"),
 
-  // se crean y posicionan los modelos geométricos, uno de cada tipo
+    ambientColor: gl.getUniformLocation(especular_program, "u_ambient_color"),
+    lightPosition: gl.getUniformLocation(especular_program, "u_light_position"),
+    lightColor: gl.getUniformLocation(especular_program, "u_light_color"),
+    shininess: gl.getUniformLocation(especular_program, "u_shininess"),
+
+    PVM_matrix: gl.getUniformLocation(especular_program, "u_PVM_matrix"),
+    VM_matrix: gl.getUniformLocation(especular_program, "u_VM_matrix"),
+    colorUniformLocation: gl.getUniformLocation(especular_program, "u_color"),
+  }
+
+  // se crean y posicionan los modelos geométricos
   let geometry = [
     new Cilindro(
       gl,
@@ -107,29 +127,19 @@ window.addEventListener("load", function (evt) {
     ),
   ];
 
-  //Creamos el shader para la luz
-  let light_program = createProgram(
-    gl,
-    createShader(gl, gl.VERTEX_SHADER, document.getElementById("light-vertex-shader").text),
-    createShader(gl, gl.FRAGMENT_SHADER, document.getElementById("light-fragment-shader").text)
-  );
-  let light_locations = {
-    positionAttribute: gl.getAttribLocation(light_program, "a_position"),
-    PVM_matrix: gl.getUniformLocation(light_program, "u_PVM_matrix")
-  };
-  let lightPos = [0, -2, 0, 1];
+  let lightPos = [0, -3, 0, 1];
   let lightPositionBuffer = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, lightPositionBuffer);
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(lightPos), gl.STATIC_DRAW);
 
   // se activa la prueba de profundidad, esto hace que se utilice el buffer de profundidad para determinar que píxeles se dibujan 
-  gl.clearColor(0, 0, 0, 0);
   gl.enable(gl.DEPTH_TEST);
 
-  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////CAMARA/////////////////////////////////////////////////////////////////////////////////
+
   // se define la posición de la cámara (o el observador o el ojo)
   // let camera = new Vector3(0, 11, 7); Camara original -------------------
-  let camera = new Vector3(0, 3, 7);
+  let camera = new Vector3(0, 2.5, 6);
   // se define la posición del centro de interés, hacia donde observa la cámara
   let coi = new Vector3(0, 0, 0);
   // se crea una matriz de cámara (o vista)
@@ -142,12 +152,14 @@ window.addEventListener("load", function (evt) {
     1,
     2000
   );
-
   // se define una matriz que combina las transformaciones de la vista y de proyección
   let viewProjectionMatrix = Matrix4.multiply(projectionMatrix, viewMatrix);
+
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+  //Funcion que se encarga de dibujar las distintas figuras
   function draw() {
+
     // se le indica a WebGL cual es el tamaño de la ventana donde se despliegan los gráficos
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
     // se limpia la pantalla con un color negro transparente
@@ -155,30 +167,37 @@ window.addEventListener("load", function (evt) {
     // se limpian tanto el buffer de color, como el buffer de profundidad
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-    // se le indica a WebGL que programa debe utilizar
-    // recordando, un programa en este contexto es una pareja compuesta por un shader de vértices y uno de fragmentos
-    gl.useProgram(program);
+    //Le indicamos que programa usar
+    if (especular_ckbx.checked) {
+      //En este caso usamos el programa para iluminacion especular
+      gl.useProgram(especular_program);
 
-    for (let i = 0; i < geometry.length; i++) {
-      geometry[i].draw(gl, shader_locations, lightPos, viewMatrix, viewProjectionMatrix);
+      //Iteramos y dibujamos las geometrias pasandole la info de iluminacion
+      for (let i = 0; i < geometry.length; i++) {
+        gl.uniform3fv(especular_shader_locations.ambientColor, [0.2, 0.2, 0.2]);
+        gl.uniform3fv(especular_shader_locations.lightColor, [1, 1, 1]);
+        gl.uniform1f(especular_shader_locations.shininess, 10);
+        geometry[i].draw(gl, especular_shader_locations, lightPos, viewMatrix, viewProjectionMatrix);
+      }
+    } else {
+      //En este caso le indicamos que use el programa para iluminacion difusa
+      gl.useProgram(program);
+
+      //Iteramos y dibujamos las geometrias
+      for (let i = 0; i < geometry.length; i++) {
+        geometry[i].draw(gl, difusa_shader_locations, lightPos, viewMatrix, viewProjectionMatrix);
+      }
     }
-
-    // // //Esto es para dibujar la posicion de la luz
-    // gl.useProgram(light_program);
-    // gl.uniformMatrix4fv(light_locations.PVM_matrix, false, viewProjectionMatrix.toArray());
-    // gl.enableVertexAttribArray(light_locations.positionAttribute);
-    // gl.bindBuffer(gl.ARRAY_BUFFER, lightPositionBuffer);
-    // gl.vertexAttribPointer(light_locations.positionAttribute, 4, gl.FLOAT, false, 0, 0);
-    // gl.drawArrays(gl.POINTS, 0, 1);
-
   }
 
   draw();
+
+  especular.addEventListener("change", function () {
+    draw();
+  });
 });
 
-//////////////////////////////////////////////////////////
-// Funciones de utilería para la construcción de shaders
-//////////////////////////////////////////////////////////
+
 /**
  * Función que crear un shader, dado un contexto de render, un tipo y el código fuente
  */
@@ -211,6 +230,5 @@ function createProgram(gl, vertexShader, fragmentShader) {
   if (success) {
     return program;
   }
-
   console.log(gl.getProgramInfoLog(program));
 }
