@@ -172,7 +172,7 @@ export default class Cilindro {
       vertices.push(
         pos[caras[i] * 3],
         pos[caras[i] * 3 + 1],
-        pos[caras[i] * 3 + 2]
+        pos[caras[i] * 3 + 2],
       );
     }
 
@@ -207,11 +207,10 @@ export default class Cilindro {
       caras.push(cara[0]);
       caras.push(cara[1]);
       caras.push(cara[2]);
-      caras.push(cara[0]);
       caras.push(cara[2]);
       caras.push(cara[3]);
+      caras.push(cara[0]);
     });
-
     return caras;
   }
 }

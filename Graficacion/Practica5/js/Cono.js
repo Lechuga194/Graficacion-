@@ -147,39 +147,40 @@ export default class Cono {
         let Nv = this.Nv;
         let Nu = this.Nu;
 
-        // se generan los triángulos que tienen en común al vértice del cono (índice vertices.length-1, i.e. el último vértice)
-        for (let i = 0; i < Nu; i++) {
-            carasAux.push([
-                verticesAux.length - 1,
-                verticesAux.length - 1 - Nu + i,
-                verticesAux.length - 1 - Nu + (i + 1) % Nu
-            ]);
-        }
+        // // se generan los triángulos que tienen en común al vértice del cono (índice vertices.length-1, i.e. el último vértice)
+        // for (let i = 0; i < Nu; i++) {
+        //     carasAux.push([
+        //         verticesAux.length - 1,
+        //         verticesAux.length - 1 - Nu + i,
+        //         verticesAux.length - 1 - Nu + (i + 1) % Nu,
+        //     ]);
+        // }
 
-        // se generan los cuadriláteros correspondientes a las caras restantes
-        for (let i = 0; i < Nv - 1; i++) {
-            for (let j = 0; j < Nu; j++) {
-                carasAux.push([
-                    j + i * Nu,
-                    (j + 1) % Nu + i * Nu,
-                    (j + 1) % Nu + (i + 1) * Nu,
-                    j + (i + 1) * Nu
-                ]);
-            }
-        }
+        // // se generan los cuadriláteros correspondientes a las caras restantes
+        // for (let i = 0; i < Nv - 1; i++) {
+        //     for (let j = 0; j < Nu; j++) {
+        //         caras.push([
+        //             j + i * Nu,
+        //             (j + 1) % Nu + i * Nu,
+        //             (j + 1) % Nu + (i + 1) * Nu,
+        //             j + (i + 1) * Nu
+        //         ]);
+        //     }
+        // }
 
-        /**
-         * For auxiliar para acomodar las caras y que se formen con dos triangulos
-         */
-        carasAux.forEach(function (cara) {
-            caras.push(cara[0]);
-            caras.push(cara[1]);
-            caras.push(cara[2]);
-            caras.push(cara[0]);
-            caras.push(cara[2]);
-            caras.push(cara[3]);
-        })
+        // // /**
+        // //  * For auxiliar para acomodar las caras y que se formen con dos triangulos
+        // //  */
+        // carasAux.forEach(function (cara) {
+        //     // caras.push(cara[0]);
+        //     // caras.push(cara[1]);
+        //     // caras.push(cara[0]);
+        //     // caras.push(cara[2]);
+        //     // caras.push(cara[2]);
+        //     // caras.push(cara[3]);
+        // })
 
+        console.log(caras);
         return caras;
     }
 

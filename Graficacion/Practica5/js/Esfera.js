@@ -52,8 +52,8 @@ export default class Esfera {
         for (let i = 0; i < Nv; i++) {
             carasAux.push([
                 0,
+                (i % Nv) + 1,
                 ((i + 1) % Nv) + 1,
-                (i % Nv) + 1
             ]);
         }
 

@@ -1,0 +1,38 @@
+* {
+  font-family: "Righteous", cursive;
+  letter-spacing: 3px;
+}
+
+body {
+  background: rgb(61, 104, 121);
+}
+
+h1 {
+  text-align: center;
+  color: white;
+}
+
+#myCanvas {
+  border-style: solid;
+  border-color: azure;
+}
+
+#page-container {
+  position: relative;
+  min-height: 95vh;
+}
+
+#content-wrap {
+  display: flex;
+  justify-content: center;
+  padding-bottom: 2rem; /* Footer height */
+}
+
+#footer {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 2rem; /* Footer height */
+  text-decoration: none;
+  color: rgb(183, 220, 255);
+}

@@ -4,8 +4,8 @@ import Vector3 from "./Vector3.js";
 
 import Cilindro from "./Cilindro.js";
 import Cono from "./Cono.js";
-import Dodecaedro from "./Dodecaedro.js";
 import Esfera from "./Esfera.js";
+import Dodecaedro from "./Dodecaedro.js";
 import Icosaedro from "./Icosaedro.js";
 import Octaedro from "./Octaedro.js";
 import PrismaRectangular from "./PrismaRectangular.js";
@@ -77,6 +77,12 @@ window.addEventListener("load", function (evt) {
       16,
       Matrix4.translate(new Vector3(-5, 0, -5))
     ),
+    new Dodecaedro(
+      gl,
+      [0, 0, 1, 1],
+      2,
+      Matrix4.translate(new Vector3(5, 0, -5))
+    ),
     new Cono(
       gl,
       [0, 1, 0, 1],
@@ -85,12 +91,6 @@ window.addEventListener("load", function (evt) {
       16,
       16,
       Matrix4.translate(new Vector3(0, 0, -5))
-    ),
-    new Dodecaedro(
-      gl,
-      [0, 0, 1, 1],
-      2,
-      Matrix4.translate(new Vector3(5, 0, -5))
     ),
     new Esfera(
       gl,
@@ -127,7 +127,7 @@ window.addEventListener("load", function (evt) {
     ),
   ];
 
-  let lightPos = [0, -3, 0, 1];
+  let lightPos = [3, 1, 5, 1];
   let lightPositionBuffer = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, lightPositionBuffer);
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(lightPos), gl.STATIC_DRAW);
@@ -140,6 +140,7 @@ window.addEventListener("load", function (evt) {
   // se define la posición de la cámara (o el observador o el ojo)
   // let camera = new Vector3(0, 11, 7); Camara original -------------------
   let camera = new Vector3(0, 2.5, 6);
+  // let camera = new Vector3(12, 5, 8);
   // se define la posición del centro de interés, hacia donde observa la cámara
   let coi = new Vector3(0, 0, 0);
   // se crea una matriz de cámara (o vista)
