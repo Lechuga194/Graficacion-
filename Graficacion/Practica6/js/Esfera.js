@@ -23,128 +23,26 @@ export default class Esfera {
         this.radius = radius;
         this.initial_transform = initial_transform;
 
-        let phi, theta, x, y, z;
-
-        let verticesAux = [];
-        let vertices = [];
-        let carasAux = [];
-        let caras = [];
-
-        // se calculan los vertices de la esfera haciendo un barrido en círculos paralelos
-        // de arriba a abajo en Y
-        verticesAux.push([0, radius, 0]);
-        for (let i = 1; i < Nu; i++) {
-            phi = (i * Math.PI) / Nu;
-
-            for (let j = 0; j < Nv; j++) {
-                theta = (j * 2 * Math.PI) / Nv;
-
-                x = radius * Math.sin(phi) * Math.cos(theta);
-                y = radius * Math.cos(phi);
-                z = radius * Math.sin(phi) * Math.sin(theta);
-
-                verticesAux.push([x, y, z]);
-            }
-        }
-        verticesAux.push([0, -radius, 0]);
-
-        // se generan los triángulos que tienen en común al polo norte (índice 0)
-        for (let i = 0; i < Nv; i++) {
-            carasAux.push([
-                0,
-                (i % Nv) + 1,
-                ((i + 1) % Nv) + 1,
-            ]);
-        }
-
-        // se generan los triángulos que tienen en común al polo sur (índice vertices.length-1, i.e. el último vértice)
-        for (let i = 0; i < Nv; i++) {
-            carasAux.push([
-                vertices.length - 1,
-                vertices.length - 1 - Nv + i,
-                vertices.length - 1 - Nv + ((i + 1) % Nv)
-            ]);
-        }
-
-        // se generan los cuadriláteros correspondientes a las caras restantes
-        for (let i = 1; i < Nu - 1; i++) {
-            for (let j = 0; j < Nv; j++) {
-                carasAux.push([
-                    j + 1 + (i - 1) * Nv,
-                    (j + 1) % Nv + 1 + (i - 1) * Nv,
-                    (j + 1) % Nv + 1 + i * Nv,
-                    j + 1 + i * Nv
-                ]);
-            }
-        }
-
-        /**
-         * For auxiliar para acomodar los vertices
-         */
-        verticesAux.forEach(elem => {
-            vertices.push(elem[0])
-            vertices.push(elem[1])
-            vertices.push(elem[2])
-        })
-
-        /**
-         * For auxiliar para acomodar las caras y que se formen con dos triangulos
-         */
-        carasAux.forEach(function (cara) {
-            caras.push(cara[0]);
-            caras.push(cara[1]);
-            caras.push(cara[2]);
-            caras.push(cara[0]);
-            caras.push(cara[2]);
-            caras.push(cara[3]);
-        })
-
-        /////////////////////////////////////////////NORMALES
-
-        let normals = [];
-
-        for (let i = 0; i < vertices.length; i += 9) {
-            // se crean arreglos de tres elementos para representar cada vértice y simplificar los cálculos
-            let v1 = new Vector3(vertices[i], vertices[i + 1], vertices[i + 2]);
-            let v2 = new Vector3(vertices[i + 3], vertices[i + 4], vertices[i + 5]);
-            let v3 = new Vector3(vertices[i + 6], vertices[i + 7], vertices[i + 8]);
-
-            let vAux = Vector3.cross(Vector3.subs(v1, v2), Vector3.subs(v2, v3));
-            let n = vAux.normalize().toArray();
-
-            // como se está usando flat shading los tres vértices tiene la misma normal asociada
-            normals.push(n[0], n[1], n[2], n[0], n[1], n[2], n[0], n[1], n[2]);
-        }
-        ////////////////////////////////////////////////////////
-
-        this.numeroCaras = caras.length;
-
         // se guarda la referencia a la transformación incial, en caso de que no se reciba una matriz, se asigna la matriz identidad
         this.initial_transform = initial_transform || Matrix4.identity();
 
         //Buffer para los vertices
+        let vertices = this.getVertices;
         this.positionBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
 
         //Buffer para las normales
+        let normals = this.getNormals;
         this.normalBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, this.normalBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(normals), gl.STATIC_DRAW);
 
-        //Buffer para las caras
-        this.indexBuffer = gl.createBuffer();
-        if (!this.indexBuffer) {
-            alert("Algo pasó INDEX buffer");
-            console.log("Fail creating a index buffer");
-            return -1;
-        }
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
-        gl.bufferData(
-            gl.ELEMENT_ARRAY_BUFFER,
-            new Uint16Array(caras),
-            gl.STATIC_DRAW
-        );
+        //Buffer para coordenadas Uv
+        let uv = this.getUV();
+        this.UVBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.UVBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(uv), gl.STATIC_DRAW);
 
         //Se activa el buffer de color
         this.colorBuffer = gl.createBuffer();
@@ -168,7 +66,16 @@ export default class Esfera {
      * @param {Array} lightPos
      * @param {Matrix4} projectionMatrix // Manda la informacion de la matriz de proyeccion y vista
      */
-    draw(gl, shader_locations, lightPos, viewMatrix, projectionMatrix) {
+    draw(gl, shader_locations, lightPos, viewMatrix, projectionMatrix, texture) {
+
+        // se activa la textura con la que se va a dibujar
+        gl.bindTexture(gl.TEXTURE_2D, texture)
+
+        // se envía la información de las coordenadas de textura
+        gl.enableVertexAttribArray(shader_locations.texcoordAttribute);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.UVBuffer);
+        gl.vertexAttribPointer(shader_locations.texcoordAttribute, 2, gl.FLOAT, false, 0, 0);
+
         //Se activa el buffer de la posicion
         gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer);
         gl.vertexAttribPointer(shader_locations.positionAttribute, 3, gl.FLOAT, false, 0, 0);
@@ -202,5 +109,105 @@ export default class Esfera {
 
         // se dibuja
         gl.drawArrays(gl.TRIANGLES, 0, this.num_elements);
+    }
+
+    /**
+   * Metodo para obtener las normales
+   * @param {Array} vertices
+   */
+    getNormals(vertices) {
+        let normals = [];
+
+        for (let i = 0; i < vertices.length; i += 9) {
+            // se crean arreglos de tres elementos para representar cada vértice y simplificar los cálculos
+            let v1 = new Vector3(vertices[i], vertices[i + 1], vertices[i + 2]);
+            let v2 = new Vector3(vertices[i + 3], vertices[i + 4], vertices[i + 5]);
+            let v3 = new Vector3(vertices[i + 6], vertices[i + 7], vertices[i + 8]);
+
+            let vAux = Vector3.cross(Vector3.subs(v1, v2), Vector3.subs(v2, v3));
+            let n = vAux.normalize().toArray();
+
+            // como se está usando flat shading los tres vértices tiene la misma normal asociada
+            normals.push(n[0], n[1], n[2], n[0], n[1], n[2], n[0], n[1], n[2]);
+        }
+        return normals;
+    }
+
+    getVerticesAux() {
+        let verticesAux = [];
+        let Nv = this.Nv;
+        let Nu = this.Nu;
+        let radius = this.radius;
+        let height = this.height;
+
+        // los vertices se construye de la base al vértice del cono
+        // de abajo a arriba en Y
+        for (let i = 0; i < Nv; i++) {
+            for (let j = 0; j < Nu; j++) {
+                verticesAux.push([
+                    ((radius * (Nv - i)) / Nv) * Math.cos((j * 2 * Math.PI) / Nu),
+                    -height + (i * 2 * height) / Nv,
+                    ((radius * (Nv - i)) / Nv) * Math.sin((j * 2 * Math.PI) / Nu),
+                ]);
+            }
+        }
+        // el último punto que se agrega es el correspondiente al vértice del cono
+        verticesAux.push([0, height, 0]);
+        return verticesAux;
+    }
+
+    /**
+     * Metodo que regresa los vertices
+     */
+    getVertices() {
+        let vertices = [];
+        let verticesAux = this.getVerticesAux();
+
+        let tmp_faces = [];
+        for (let i = 0; i < this.Nu; i++) {
+            tmp_faces.push([
+                verticesAux.length - 1,
+                verticesAux.length - 1 - this.Nu + ((i + 1) % this.Nu),
+                verticesAux.length - 1 - this.Nu + i,
+            ]);
+        }
+        for (let i = 0; i < this.Nv - 1; i++) {
+            for (let j = 0; j < this.Nu; j++) {
+                tmp_faces.push([
+                    j + i * this.Nu,
+                    j + (i + 1) * this.Nu,
+                    ((j + 1) % this.Nu) + i * this.Nu,
+                ]);
+
+                tmp_faces.push([
+                    ((j + 1) % this.Nu) + i * this.Nu,
+                    j + (i + 1) * this.Nu,
+                    ((j + 1) % this.Nu) + (i + 1) * this.Nu,
+                ]);
+            }
+        }
+
+        tmp_faces.forEach((face) => {
+            vertices = vertices
+                .concat(verticesAux[face[0]])
+                .concat(verticesAux[face[1]])
+                .concat(verticesAux[face[2]]);
+        });
+
+        return vertices;
+    }
+
+    /**
+   * Metodo para obtener las coordenadas UV
+   */
+    getUV() {
+        //Calculamos la coordenadas UV iterando las caras y asignando el valor de u y v respectivamente con un valor random (entre  y 1)
+        let caras = this.getVertices().length;
+        let uv = [];
+        for (let i = 0; i <= caras; i++) {
+            uv.push(Math.random());
+            uv.push(Math.random());
+        }
+        return uv;
     }
 }

@@ -42,6 +42,12 @@ export default class Dodecaedro {
     gl.bindBuffer(gl.ARRAY_BUFFER, this.normalBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(normals), gl.STATIC_DRAW);
 
+    //Buffer para coordenadas Uv
+    let uv = this.getUV();
+    this.UVBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.UVBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(uv), gl.STATIC_DRAW);
+
     //Buffer para las caras
     let caras = this.getCaras();
     this.indexBuffer = gl.createBuffer();
@@ -79,7 +85,10 @@ export default class Dodecaedro {
    * @param {Array} lightPos
    * @param {Matrix4} projectionMatrix // Manda la informacion de la matriz de proyeccion y vista
    */
-  draw(gl, shader_locations, lightPos, viewMatrix, projectionMatrix) {
+  draw(gl, shader_locations, lightPos, viewMatrix, projectionMatrix, texture) {
+    // se activa la textura con la que se va a dibujar
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+
     //Se activa el buffer de la posicion
     gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer);
     gl.vertexAttribPointer(
@@ -103,6 +112,11 @@ export default class Dodecaedro {
       0,
       0
     );
+
+    // se envía la información de las coordenadas de textura
+    gl.enableVertexAttribArray(shader_locations.texcoordAttribute);
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.UVBuffer);
+    gl.vertexAttribPointer(shader_locations.texcoordAttribute, 2, gl.FLOAT, false, 0, 0);
 
     //Buffer para el color
     gl.enableVertexAttribArray(shader_locations.colorAttribute);
@@ -235,30 +249,6 @@ export default class Dodecaedro {
     let width_d_goldenRatio = this.width_d_goldenRatio;
     let width_m_goldenRatio = this.width_m_goldenRatio;
 
-    // // arreglo de vértices
-    // let pos = [
-    //   width, width, width,
-    //   width, width, -width,
-    //   width, -width, width,
-    //   width, -width, -width,
-    //   -width, width, width,
-    //   -width, width, -width,
-    //   -width, -width, width,
-    //   -width, -width, -width,
-    //   0, width_d_goldenRatio, width_m_goldenRatio,
-    //   0, width_d_goldenRatio, -width_m_goldenRatio,
-    //   0, -width_d_goldenRatio, width_m_goldenRatio,
-    //   0, -width_d_goldenRatio, -width_m_goldenRatio,
-    //   width_d_goldenRatio, width_m_goldenRatio, 0,
-    //   width_d_goldenRatio, -width_m_goldenRatio, 0,
-    //   -width_d_goldenRatio, width_m_goldenRatio, 0,
-    //   -width_d_goldenRatio, -width_m_goldenRatio, 0,
-    //   width_m_goldenRatio, 0, width_d_goldenRatio,
-    //   width_m_goldenRatio, 0, -width_d_goldenRatio,
-    //   -width_m_goldenRatio, 0, width_d_goldenRatio,
-    //   -width_m_goldenRatio, 0, -width_d_goldenRatio,
-    // ];
-
     const pos = [
       1.61803398874989, 0, 0.618033988749895,
       -1.61803398874989, 0, 0.618033988749895,
@@ -290,5 +280,19 @@ export default class Dodecaedro {
     }
 
     return vertices;
+  }
+
+  /**
+   * Metodo para obtener las coordenadas UV
+   */
+  getUV() {
+    //Calculamos la coordenadas UV iterando las caras y asignando el valor de u y v respectivamente con un valor random (entre  y 1)
+    let caras = this.getCaras().length;
+    let uv = [];
+    for (let i = 0; i <= caras; i++) {
+      uv.push(Math.random());
+      uv.push(Math.random());
+    }
+    return uv;
   }
 }

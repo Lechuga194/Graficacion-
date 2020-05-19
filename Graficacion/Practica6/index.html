@@ -18,6 +18,11 @@
     attribute vec4 a_position;
     attribute vec4 a_color;
     attribute vec3 a_normal;
+
+    // variable donde se recibe la información del buffer de coordenadas de textura
+    attribute vec2 a_texcoord;
+    // variable para comunicar las coordenadas de textura entre el shader de vértices y el shader de fragmentos
+    varying vec2 v_texcoord;
     
     uniform mat4 u_PVM_matrix;
     uniform mat4 u_VM_matrix;
@@ -36,6 +41,7 @@
       v_color = a_color;
 
       gl_Position = u_PVM_matrix * a_position;
+      v_texcoord = a_texcoord;
     }
   </script>
    
@@ -52,6 +58,11 @@
     // se define la componente de la luz ambiental como un valor constante
     vec3 ambient = vec3(0.01, 0.01, 0.01);
 
+    // variable donde se reciben las coordenadas de textura de los vértices que forman un polígono
+    varying vec2 v_texcoord;
+    // objeto que se encarga de obtener la información de color de los píxeles de la imagen
+    uniform sampler2D u_texture;
+    
     void main() {
       // se crea una variable que va a contener que tanto va a estar iluminada la geometría
       float factor = 0.0;
@@ -64,6 +75,7 @@
       // variable temporal que va a contener el coseno del ángulo entre la dirección de una luz y la normal
       float cos_angle;
 
+
       // se itera sobre cada una de las luces y se calcula su contribución, de la misma forma que se hacia antes
       for (int i=0; i<3; i++) {
         to_light = normalize( u_light_position[i] - v_position );
@@ -72,7 +84,9 @@
         factor += cos_angle;
       }    
 
-      gl_FragColor = vec4(ambient + vec3(v_color)*factor, v_color.a);
+
+      //gl_FragColor = vec4(ambient + vec3(v_color)*factor, v_color.a); Dado que ahora usamos texturas
+      gl_FragColor = texture2D(u_texture, v_texcoord);
     }
   </script>
 
