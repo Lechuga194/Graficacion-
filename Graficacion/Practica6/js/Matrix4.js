@@ -596,7 +596,7 @@ export default class Matrix4 {
       near * far * rango * 2,
       0
     );
-    return perspective.transpose();
+    return perspective;
   }
 
   /**

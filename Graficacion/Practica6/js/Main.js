@@ -2,6 +2,7 @@
 import Matrix4 from "./Matrix4.js";
 import Vector3 from "./Vector3.js";
 import ImageLoader from "./ImageLoader.js";
+import Camera from "./Camera.js";
 
 import Cilindro from "./Cilindro.js";
 import Cono from "./Cono.js";
@@ -28,7 +29,7 @@ window.addEventListener("load", function () {
       if (!gl) throw "WebGL no soportado";
 
       // se obtiene la referencia al checkbox de iluminacion
-      let especular = document.getElementById("especular_ckbx");
+      let cambioTextura = document.getElementById("cambiar_texturas");
 
       //Creamos el programa para iluminacion difusa
       let program = createProgram(
@@ -36,32 +37,18 @@ window.addEventListener("load", function () {
         createShader(
           gl,
           gl.VERTEX_SHADER,
-          document.getElementById("difusa_2d-vertex-shader").text
+          document.getElementById("texture_2d-vertex-shader").text
         ),
         createShader(
           gl,
           gl.FRAGMENT_SHADER,
-          document.getElementById("difusa_2d-fragment-shader").text
+          document.getElementById("texture_2d-fragment-shader").text
         )
       );
 
-      //Creamos el programa para iluminacion especular
-      let especular_program = createProgram(
-        gl,
-        createShader(
-          gl,
-          gl.VERTEX_SHADER,
-          document.getElementById("especular-2d-vertex-shader").text
-        ),
-        createShader(
-          gl,
-          gl.FRAGMENT_SHADER,
-          document.getElementById("especular-2d-fragment-shader").text
-        )
-      );
 
       //Este objeto se lo pasaremos a la funcion draw de cada figura (Difusa)
-      let difusa_shader_locations = {
+      let material_shader_locations = {
         positionAttribute: gl.getAttribLocation(program, "a_position"),
         colorAttribute: gl.getAttribLocation(program, "a_color"),
         normalAttribute: gl.getAttribLocation(program, "a_normal"),
@@ -70,34 +57,6 @@ window.addEventListener("load", function () {
         VM_matrix: gl.getUniformLocation(program, "u_VM_matrix"),
         colorUniformLocation: gl.getUniformLocation(program, "u_color"),
         texcoordAttribute: gl.getAttribLocation(program, "a_texcoord"),
-      };
-
-      //Este objeto se lo pasaremos a la funcion draw de cada figura (Especular)
-      let especular_shader_locations = {
-        positionAttribute: gl.getAttribLocation(
-          especular_program,
-          "a_position"
-        ),
-        colorAttribute: gl.getAttribLocation(especular_program, "a_color"),
-        normalAttribute: gl.getAttribLocation(especular_program, "a_normal"),
-
-        ambientColor: gl.getUniformLocation(
-          especular_program,
-          "u_ambient_color"
-        ),
-        lightPosition: gl.getUniformLocation(
-          especular_program,
-          "u_light_position"
-        ),
-        lightColor: gl.getUniformLocation(especular_program, "u_light_color"),
-        shininess: gl.getUniformLocation(especular_program, "u_shininess"),
-
-        PVM_matrix: gl.getUniformLocation(especular_program, "u_PVM_matrix"),
-        VM_matrix: gl.getUniformLocation(especular_program, "u_VM_matrix"),
-        colorUniformLocation: gl.getUniformLocation(
-          especular_program,
-          "u_color"
-        ),
       };
 
       // se crean y posicionan los modelos geométricos
@@ -254,6 +213,9 @@ window.addEventListener("load", function () {
       gl.generateMipmap(gl.TEXTURE_2D);
       glTextures.push(texture6);
 
+      //Esto elige una textura random para todas las figuras
+      let texture = glTextures[Math.floor(Math.random() * 6)]
+
       /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
       //Informacion de la iluminacion
@@ -272,13 +234,13 @@ window.addEventListener("load", function () {
       /////////////////////////////////////CAMARA/////////////////////////////////////////////////////////////////////////////////
 
       // se define la posición de la cámara (o el observador o el ojo)
-      // let camera = new Vector3(0, 11, 7); Camara original -------------------
-      let camera = new Vector3(0, 2.5, 6);
-      // let camera = new Vector3(12, 5, 8);
+      let pos = new Vector3(0, 2.5, 6);
       // se define la posición del centro de interés, hacia donde observa la cámara
       let coi = new Vector3(0, 0, 0);
-      // se crea una matriz de cámara (o vista)
-      let viewMatrix = Matrix4.lookAt(camera, coi, new Vector3(0, 1, 0));
+      // Vector arriba
+      let up = new Vector3(0, 1, 0);
+      //Se crea la camara
+      let camera = new Camera(pos, coi, up);
 
       // se construye la matriz de proyección en perspectiva
       let projectionMatrix = Matrix4.perspective(
@@ -287,8 +249,9 @@ window.addEventListener("load", function () {
         1,
         2000
       );
+
       // se define una matriz que combina las transformaciones de la vista y de proyección
-      let viewProjectionMatrix = Matrix4.multiply(projectionMatrix, viewMatrix);
+      let viewProjectionMatrix = Matrix4.multiply(projectionMatrix, camera.getMatrix());
 
       //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -301,53 +264,73 @@ window.addEventListener("load", function () {
         // se limpian tanto el buffer de color, como el buffer de profundidad
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-        //Le indicamos que programa usar
-        if (especular_ckbx.checked) {
-          //En este caso usamos el programa para iluminacion especular
-          gl.useProgram(especular_program);
+        //En este caso le indicamos que use el programa para iluminacion difusa
+        gl.useProgram(program);
 
-          //Iteramos y dibujamos las geometrias pasandole la info de iluminacion
-          for (let i = 0; i < geometry.length; i++) {
-            gl.uniform3fv(especular_shader_locations.ambientColor, [
-              0.2,
-              0.2,
-              0.2,
-            ]);
-            gl.uniform3fv(especular_shader_locations.lightColor, [1, 1, 1]);
-            gl.uniform1f(especular_shader_locations.shininess, 10);
-            geometry[i].draw(
-              gl,
-              especular_shader_locations,
-              lightPos,
-              viewMatrix,
-              viewProjectionMatrix,
-              texture,
-            );
-          }
-        } else {
-          //En este caso le indicamos que use el programa para iluminacion difusa
-          gl.useProgram(program);
-
-          //Iteramos y dibujamos las geometrias
-          for (let i = 0; i < geometry.length; i++) {
-            let texture = glTextures[Math.floor(Math.random() * 6)]
-            geometry[i].draw(
-              gl,
-              difusa_shader_locations,
-              lightPos,
-              viewMatrix,
-              viewProjectionMatrix,
-              texture
-            );
-          }
+        //Iteramos y dibujamos las geometrias
+        for (let i = 0; i < geometry.length; i++) {
+          //Asignamos aleatoriamente las texturas
+          geometry[i].draw(
+            gl,
+            material_shader_locations,
+            lightPos,
+            camera.getMatrix(),
+            viewProjectionMatrix,
+            texture
+          );
         }
       }
 
       draw();
 
-      especular.addEventListener("change", function () {
+      //Evento que cambia la textura de las figuras
+      cambioTextura.addEventListener("change", function () {
+        texture = glTextures[Math.floor(Math.random() * 6)]
         draw();
       });
+
+      // variable donde se almacena la posición del mouse cuando se presiona el mouse sobre el canvas 
+      let initial_mouse_position = null;
+
+      /**
+       * Manejador de eventos para cuando se presiona el botón del mouse dentro del canvas
+       */
+      canvas.addEventListener("mousedown", (evt) => {
+        initial_mouse_position = getMousePositionInCanvas(evt);
+
+        canvas.addEventListener("mousemove", mousemove);
+      });
+
+      /**
+       * Manejador de eventos para cuando se libera el botón del mouse en cualquier parte de la ventana (window)
+       */
+      window.addEventListener("mouseup", (evt) => {
+        if (initial_mouse_position) {
+          camera.finishMove(initial_mouse_position, getMousePositionInCanvas(evt));
+        }
+
+        canvas.removeEventListener("mousemove", mousemove);
+        initial_mouse_position = null;
+      });
+
+      /**
+       * Función que se encarga de llamar la función de rotación de la cámara, y redibuja la escena
+       */
+      function mousemove(evt) {
+        camera.rotate(initial_mouse_position, getMousePositionInCanvas(evt));
+        draw();
+      }
+
+      /**
+       * Función que obtiene las coordenadas del mouse
+       */
+      function getMousePositionInCanvas(evt) {
+        const rect = canvas.getBoundingClientRect();
+
+        const x = evt.clientX - rect.left;
+        const y = evt.clientY - rect.top;
+        return { x: x, y: y };
+      }
     }
   );
 });
