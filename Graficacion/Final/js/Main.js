@@ -3,7 +3,8 @@ import Matrix4 from "./Matrix4.js";
 import Vector3 from "./Vector3.js";
 import ImageLoader from "./ImageLoader.js";
 import Camera from "./Camera.js";
-import Skybox from "./Skybox.js"
+import Skybox from "./Skybox.js";
+
 
 import Cilindro from "./Cilindro.js";
 import Cono from "./Cono.js";
@@ -18,7 +19,7 @@ import Toro from "./Toro.js";
 window.addEventListener("load", function () {
   ImageLoader.load(
     // la lista de imágenes que se van a cargar, en este caso solo es una
-    ["textura1.jpg", "textura2.jpg", "textura3.jpg", "textura4.jpg", "textura5.jpg", "textura6.jpg", "skybox.png"],
+    ["bookshelf.png", "pasto.jpg", "skybox.png",],
     function () {
       // se obtiene una referencia al canvas
       let canvas = document.getElementById("the_canvas");
@@ -69,11 +70,10 @@ window.addEventListener("load", function () {
 
       ///////////////////////////////////////////////Creamos las texturas///////////////////////////////////////////////////
 
-      let textures = ["textura1.jpg", "textura2.jpg", "textura3.jpg", "textura4.jpg", "textura5.jpg", "textura6.jpg"];
-      let glTextures = [];
+      let textures = ["bookshelf.png", "pasto.jpg", "skybox.png",];
 
-      let texture1 = gl.createTexture();
-      gl.bindTexture(gl.TEXTURE_2D, texture1);
+      let textura_bookshelf = gl.createTexture();
+      gl.bindTexture(gl.TEXTURE_2D, textura_bookshelf);
       gl.texImage2D(
         gl.TEXTURE_2D,
         0,
@@ -83,10 +83,9 @@ window.addEventListener("load", function () {
         ImageLoader.getImage(textures[0])
       );
       gl.generateMipmap(gl.TEXTURE_2D);
-      glTextures.push(texture1);
 
-      let texture2 = gl.createTexture();
-      gl.bindTexture(gl.TEXTURE_2D, texture2);
+      let textura_pasto = gl.createTexture();
+      gl.bindTexture(gl.TEXTURE_2D, textura_pasto);
       gl.texImage2D(
         gl.TEXTURE_2D,
         0,
@@ -96,62 +95,6 @@ window.addEventListener("load", function () {
         ImageLoader.getImage(textures[1])
       );
       gl.generateMipmap(gl.TEXTURE_2D);
-      glTextures.push(texture2);
-
-      let texture3 = gl.createTexture();
-      gl.bindTexture(gl.TEXTURE_2D, texture3);
-      gl.texImage2D(
-        gl.TEXTURE_2D,
-        0,
-        gl.RGBA,
-        gl.RGBA,
-        gl.UNSIGNED_BYTE,
-        ImageLoader.getImage(textures[2])
-      );
-      gl.generateMipmap(gl.TEXTURE_2D);
-      glTextures.push(texture3);
-
-      let texture4 = gl.createTexture();
-      gl.bindTexture(gl.TEXTURE_2D, texture4);
-      gl.texImage2D(
-        gl.TEXTURE_2D,
-        0,
-        gl.RGBA,
-        gl.RGBA,
-        gl.UNSIGNED_BYTE,
-        ImageLoader.getImage(textures[3])
-      );
-      gl.generateMipmap(gl.TEXTURE_2D);
-      glTextures.push(texture4);
-
-      let texture5 = gl.createTexture();
-      gl.bindTexture(gl.TEXTURE_2D, texture5);
-      gl.texImage2D(
-        gl.TEXTURE_2D,
-        0,
-        gl.RGBA,
-        gl.RGBA,
-        gl.UNSIGNED_BYTE,
-        ImageLoader.getImage(textures[4])
-      );
-      gl.generateMipmap(gl.TEXTURE_2D);
-      glTextures.push(texture5);
-
-      let texture6 = gl.createTexture();
-      gl.bindTexture(gl.TEXTURE_2D, texture6);
-      gl.texImage2D(
-        gl.TEXTURE_2D,
-        0,
-        gl.RGBA,
-        gl.RGBA,
-        gl.UNSIGNED_BYTE,
-        ImageLoader.getImage(textures[5])
-      );
-      gl.generateMipmap(gl.TEXTURE_2D);
-      glTextures.push(texture6);
-
-      //Esto elige una textura random para todas las figuras
-      let texture = glTextures[Math.floor(Math.random() * 6)]
 
       ///////////////////////////////////////////ILUMINACION///////////////////////////////////////////////////////////////////////
 
@@ -206,9 +149,11 @@ window.addEventListener("load", function () {
       //Los bloques medios 3*5*5
 
       // se crean y posicionan los modelos geométricos
-      let geometry = [
-        new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(0, 0, 0)), 3, 5, 5), //Mesa de encantamientos
-        new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.multiply(Matrix4.translate(new Vector3(0, 3.5, 0)), Matrix4.rotateZ(-15)), 1, 2.5, 3), //Libro de la mesa de encantamientos
+      let piso = new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(0, -5, 0)), 5, 500, 500);
+      let mesaEncantamiento = new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(0, 0, 0)), 3, 5, 5);
+      let mesaEncantamientoLibro = new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.multiply(Matrix4.translate(new Vector3(0, 3.5, 0)), Matrix4.rotateZ(-15)), 1, 2.5, 3);
+
+      let bookshelfModesl = [
         new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(5, 0, 10))),    //librero 1
         new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(10, 0, 10))),   //librero 2
         new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(10, 0, 5))),    //librero 3
@@ -224,81 +169,7 @@ window.addEventListener("load", function () {
         new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(-10, 0, 5))),   //librero 13
         new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(-10, 0, 10))),  //librero 14
         new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(-5, 0, 10))),   //librero 15
-
       ];
-
-      // let geometry = [
-      //   mesaEncantamientos,
-      //   libro_mesaEncantamientos,
-      //   // new PrismaRectangular(
-      //   //   gl,
-      //   //   [1, 0.2, 0.3, 1],
-      //   //   3, //Altura
-      //   //   5,
-      //   //   5,
-      //   //   Matrix4.translate(new Vector3(0, 0, 0))
-      //   // ),
-      //   //   new Cilindro(
-      //   //     gl,
-      //   //     [1, 0, 0, 1],
-      //   //     2,
-      //   //     2,
-      //   //     16,
-      //   //     16,
-      //   //     Matrix4.translate(new Vector3(-5, 0, -5))
-      //   //   ),
-      //   //   new Dodecaedro(
-      //   //     gl,
-      //   //     [0, 0, 1, 1],
-      //   //     2,
-      //   //     Matrix4.translate(new Vector3(5, 0, -5))
-      //   //   ),
-      //   //   new Cono(
-      //   //     gl,
-      //   //     [0, 1, 0, 1],
-      //   //     2,
-      //   //     2,
-      //   //     16,
-      //   //     16,
-      //   //     Matrix4.translate(new Vector3(0, 0, -5))
-      //   //   ),
-      //   //   new Esfera(
-      //   //     gl,
-      //   //     [0, 1, 1, 1],
-      //   //     2,
-      //   //     16,
-      //   //     16,
-      //   //     Matrix4.translate(new Vector3(-5, 0, 0))
-      //   //   ),
-      //   //   new Icosaedro(
-      //   //     gl,
-      //   //     [1, 0, 1, 1],
-      //   //     2,
-      //   //     Matrix4.translate(new Vector3(0, 0, 0))
-      //   //   ),
-      //   //   new Octaedro(
-      //   //     gl,
-      //   //     [1, 1, 0, 1],
-      //   //     2,
-      //   //     Matrix4.translate(new Vector3(5, 0, 0))
-      //   //   ),
-      //   //   new Tetraedro(
-      //   //     gl,
-      //   //     [0.5, 0.5, 0.5, 1],
-      //   //     2,
-      //   //     Matrix4.translate(new Vector3(0, 0, 5))
-      //   //   ),
-      //   //   new Toro(
-      //   //     gl,
-      //   //     [0.25, 0.25, 0.25, 1],
-      //   //     4,
-      //   //     1,
-      //   //     16,
-      //   //     16,
-      //   //     Matrix4.translate(new Vector3(5, 0, 5))
-      //   //   ),
-      // ];
-
 
       //Funcion que se encarga de dibujar las distintas figuras
 
@@ -313,17 +184,21 @@ window.addEventListener("load", function () {
         //En este caso le indicamos que use el programa para iluminacion difusa
         gl.useProgram(program);
 
-        //Iteramos y dibujamos las geometrias
-        for (let i = 0; i < geometry.length; i++) {
-          geometry[i].draw(
+        //Iteramos y dibujamos los libreros de la escena
+        bookshelfModesl.forEach(shelf => {
+          shelf.draw(
             gl,
             material_shader_locations,
             lightPos,
             camera.getMatrix(),
             viewProjectionMatrix,
-            texture
+            textura_bookshelf
           );
-        }
+        })
+
+        piso.draw(gl, material_shader_locations, lightPos, camera.getMatrix(), viewProjectionMatrix, textura_pasto);
+        mesaEncantamiento.draw(gl, material_shader_locations, lightPos, camera.getMatrix(), viewProjectionMatrix, textura_pasto);
+        mesaEncantamientoLibro.draw(gl, material_shader_locations, lightPos, camera.getMatrix(), viewProjectionMatrix, textura_pasto);
 
         //Dibujamos el skybox
         projectionViewMatrix_SKYBOX = Matrix4.multiply(projectionMatrix, camera.getMatrix());
@@ -410,7 +285,7 @@ window.addEventListener("load", function () {
       //   animarGeometria(model);
       // })
 
-      animarGeometria(geometry[1], 250, "y", "+")
+      animarGeometria(mesaEncantamientoLibro, 250, "y", "+")
 
       ////////////////////////////////////////////////////////EVENTOS////////////////////////////////////////////////////////////////////
 
@@ -444,7 +319,7 @@ window.addEventListener("load", function () {
         let currentPosition = camera.getPos();
         let newPosition;
         //Variable para determinar la velocidad de moviemiento de la camara
-        let velocidad = 0.3;
+        let velocidad = 0.8;
         //Variable para alejar o aumentar el zoom 
         let distancia = 20;
 

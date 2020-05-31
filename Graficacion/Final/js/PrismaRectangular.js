@@ -209,13 +209,54 @@ export default class PrismaRectangular {
    * Metodo para obtener las coordenadas UV
    */
   getUV() {
-    //Calculamos la coordenadas UV iterando las caras y asignando el valor de u y v respectivamente con un valor random (entre  y 1)
-    let caras = this.getCaras().length;
-    let uv = [];
-    for (let i = 0; i <= caras; i++) {
-      uv.push(Math.random());
-      uv.push(Math.random());
-    }
-    return uv;
+    return [
+      //DERECHO
+      0.75, 0.625,
+      0.5, 0.375,
+      0.75, 0.375,
+      0.5, 0.625,
+      0.5, 0.375,
+      0.75, 0.625,
+
+      //ATRAS
+      0.75, 0.375,
+      0.75, 0.625,
+      1, 0.625,
+      1, 0.625,
+      0.75, 0.375,
+      1, 0.375,
+
+      // IZQUIERDA
+      0, 0.625,
+      0, 0.375,
+      0.25, 0.625,
+      0.25, 0.375,
+      0.25, 0.625,
+      0, 0.375,
+
+      //FRENTE
+      0.25, 0.625,
+      0.25, 0.375,
+      0.5, 0.625,
+      0.25, 0.375,
+      0.5, 0.375,
+      0.5, 0.625,
+
+      // ABAJO
+      0.5, 0.625,
+      0.5, 0.875,
+      0.25, 0.625,
+      0.25, 0.875,
+      0.25, 0.625,
+      0.5, 0.875,
+
+      // // ARRIBA
+      0.5, 0.375,
+      0.25, 0.375,
+      0.25, 0.125,
+      0.5, 0.375,
+      0.25, 0.125,
+      0.5, 0.125,
+    ]
   }
 }
