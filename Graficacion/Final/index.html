@@ -19,11 +19,76 @@
   <input type="checkbox" id="iniciar_animacion">
   <label for="iniciar_animacion">Iniciar animación principal</label>
 
-  Controles awsd para moverse 
+  Controles awsd para moverse
   p/o para panear
   x para alejar y z para zoom
   b para ver el skybox desde afuera
+  <!-- Programas para iluminacion difusa -->
+  <script id="difuse_2d-vertex-shader" type="vertex-shader">
+      precision mediump float;
+  
+      attribute vec4 a_position;
+      attribute vec4 a_color;
+      attribute vec3 a_normal;
+      
+      uniform mat4 u_PVM_matrix;
+      uniform mat4 u_VM_matrix;
+  
+      // se van a tener tres luces, por lo que se crea un arreglo para contenerlas
+      uniform vec3 u_light_position[3];
+  
+      varying vec3 v_position;
+      varying vec4 v_color;
+      varying vec3 v_normal;
+  
+      void main() {
+        v_position = vec3( u_VM_matrix * a_position );
+        v_normal = vec3( u_VM_matrix * vec4(a_normal, 0) );
+  
+        v_color = a_color;
+  
+        gl_Position = u_PVM_matrix * a_position;
+      }
+    </script>
 
+  <script id="difuse_2d-fragment-shader" type="fragment-shader">
+      precision mediump float;
+  
+      // se van a tener tres luces, por lo que se crea un arreglo para contenerlas
+      uniform vec3 u_light_position[3];
+  
+      varying vec3 v_position;
+      varying vec4 v_color;
+      varying vec3 v_normal;
+  
+      // se define la componente de la luz ambiental como un valor constante
+      vec3 ambient = vec3(0.01, 0.01, 0.01);
+  
+      void main() {
+        // se crea una variable que va a contener que tanto va a estar iluminada la geometría
+        float factor = 0.0;
+  
+        // se normaliza la normal de la cara que se está dibujando
+        vec3 fragment_normal = normalize(v_normal);
+  
+        // variable temporal que va a contener la dirección de una luz
+        vec3 to_light;
+        // variable temporal que va a contener el coseno del ángulo entre la dirección de una luz y la normal
+        float cos_angle;
+  
+        // se itera sobre cada una de las luces y se calcula su contribución, de la misma forma que se hacia antes
+        for (int i=0; i<3; i++) {
+          to_light = normalize( u_light_position[i] - v_position );
+          cos_angle = max(dot(fragment_normal, to_light), 0.0);
+          // se almacena el factor de iluminación de cada luz
+          factor += cos_angle;
+        }    
+  
+        gl_FragColor = vec4(ambient + vec3(v_color)*factor, v_color.a);
+      }
+    </script>
+
+  <!-- Programas para texturas -->
   <script id="texture_2d-vertex-shader" type="vertex-shader">
     precision mediump float;
 

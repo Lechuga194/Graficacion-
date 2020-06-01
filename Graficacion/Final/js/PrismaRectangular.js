@@ -95,7 +95,7 @@ export default class PrismaRectangular {
    * @param {Array} lightPos
    * @param {Matrix4} projectionMatrix // Manda la informacion de la matriz de proyeccion y vista
    */
-  draw(gl, shader_locations, lightPos, viewMatrix, projectionMatrix, texture) {
+  drawTexture(gl, shader_locations, lightPos, viewMatrix, projectionMatrix, texture) {
 
     // se activa la textura con la que se va a dibujar
     gl.bindTexture(gl.TEXTURE_2D, texture);
@@ -128,6 +128,44 @@ export default class PrismaRectangular {
     // se envía la información de la matriz de transformación del modelo, vista y proyección
     let projectionViewModelMatrix = Matrix4.multiply(projectionMatrix, viewModelMatrix);
     // let projectionViewModelMatrix = projectionMatrix; //Si dejamos esto así el objeto se queda pegado a la camara
+    gl.uniformMatrix4fv(shader_locations.PVM_matrix, false, projectionViewModelMatrix.toArray());
+
+    // se dibuja
+    gl.drawArrays(gl.TRIANGLES, 0, this.num_elements);
+
+  }
+
+  drawDifuse(gl, shader_locations, lightPos, viewMatrix, projectionMatrix) {
+
+    //Se activa el buffer de la posicion
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer);
+    gl.vertexAttribPointer(shader_locations.positionAttribute, 3, gl.FLOAT, false, 0, 0);
+    gl.enableVertexAttribArray(shader_locations.positionAttribute);
+
+    //Se activa el buffer para las normales
+    gl.enableVertexAttribArray(shader_locations.normalAttribute);
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.normalBuffer);
+    gl.vertexAttribPointer(shader_locations.normalAttribute, 3, gl.FLOAT, false, 0, 0);
+
+    //Buffer para el color
+    gl.enableVertexAttribArray(shader_locations.colorAttribute);
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.colorBuffer);
+    gl.vertexAttribPointer(shader_locations.colorAttribute, 4, gl.FLOAT, false, 0, 0);
+    // se envía la información del color    
+    gl.uniform4fv(shader_locations.colorUniformLocation, this.color);
+
+    // se calcula la matriz de transformación de modelo, vista y proyección
+    let viewModelMatrix = Matrix4.multiply(viewMatrix, this.initial_transform);
+    gl.uniformMatrix4fv(shader_locations.VM_matrix, false, viewModelMatrix.toArray());
+
+    // se enviá la dirección de la luz
+    let auxLightPos = new Vector4(lightPos[0], lightPos[1], lightPos[2], lightPos[3])
+    let lightPosView = viewMatrix.multiplyVector(auxLightPos);
+    let lightPosViewArray = lightPosView.toArray();
+    gl.uniform3f(shader_locations.lightPosition, lightPosViewArray[0], lightPosViewArray[1], lightPosViewArray[2]);
+
+    // se envía la información de la matriz de transformación del modelo, vista y proyección
+    let projectionViewModelMatrix = Matrix4.multiply(projectionMatrix, viewModelMatrix);
     gl.uniformMatrix4fv(shader_locations.PVM_matrix, false, projectionViewModelMatrix.toArray());
 
     // se dibuja
@@ -190,18 +228,18 @@ export default class PrismaRectangular {
   */
   getCaras() {
     return [
-      2, 1, 0,
-      3, 1, 2,
-      1, 3, 7,
-      7, 1, 5,
-      7, 5, 6,
-      4, 6, 5,
-      6, 4, 2,
-      4, 0, 2,
-      2, 3, 6,
-      7, 6, 3,
-      4, 0, 1,
-      4, 1, 5
+      2, 1, 0, //Derecho
+      3, 1, 2, //Derecho
+      1, 3, 7, //Atras
+      7, 5, 1, //Atras
+      7, 5, 6, //Izquierdo
+      4, 6, 5, //Izquierdo
+      6, 4, 2, //Frente
+      4, 0, 2, //Frente
+      2, 3, 6, //Abajo
+      7, 6, 3, //Abajo
+      4, 0, 1, //Arriba
+      4, 1, 5  //Arriba
     ];
   }
 
@@ -223,8 +261,8 @@ export default class PrismaRectangular {
       0.75, 0.625,
       1, 0.625,
       1, 0.625,
-      0.75, 0.375,
       1, 0.375,
+      0.75, 0.375,
 
       // IZQUIERDA
       0, 0.625,

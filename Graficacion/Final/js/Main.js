@@ -5,17 +5,9 @@ import ImageLoader from "./ImageLoader.js";
 import Camera from "./Camera.js";
 import Skybox from "./Skybox.js";
 
-
-import Cilindro from "./Cilindro.js";
-import Cono from "./Cono.js";
-import Esfera from "./Esfera.js";
-import Dodecaedro from "./Dodecaedro.js";
-import Icosaedro from "./Icosaedro.js";
-import Octaedro from "./Octaedro.js";
 import PrismaRectangular from "./PrismaRectangular.js";
-import Tetraedro from "./Tetraedro.js";
-import Toro from "./Toro.js";
 
+//Arreglo que contiene todas las texturas de la escena
 let textures = [
   "bookshelf.png",
   "pasto.jpg",
@@ -29,11 +21,14 @@ let textures = [
   "mesa.png",
   "obsidiana.png",
   "chest.png",
+  "creeper_head.png",
+  "creeper_body.png",
+  "creeper_legs.png"
 ];
 
 window.addEventListener("load", function () {
   ImageLoader.load(
-    // la lista de imágenes que se van a cargar
+    // la lista de imágenes que se van a cargar como texturas
     textures,
     function () {
       // se obtiene una referencia al canvas
@@ -45,9 +40,6 @@ window.addEventListener("load", function () {
       // si el navegador no soporta WebGL la variable gl no está definida
       if (!gl) throw "WebGL no soportado";
 
-      //Skybox
-      let skybox = new Skybox(gl, Matrix4.scale(new Vector3(1000, 1000, 1000)));
-
       //Referencia al checkbox para vista ortogonal
       let ortogonal = document.getElementById("ortogonal");
       //Referencia a la seleccion de camara
@@ -55,8 +47,10 @@ window.addEventListener("load", function () {
       //Referencia a checkboc para iniciar la animación
       let iniciar_animacion = document.getElementById("iniciar_animacion");
 
-      //Creamos el programa para iluminacion difusa
-      let program = createProgram(
+      ///////////////////////////////////////////////////Creacion de programas y sus asignaciones//////////////////////////////
+
+      //Creamos el programa para el uso de texturas
+      let texture_program = createProgram(
         gl,
         createShader(
           gl,
@@ -70,20 +64,85 @@ window.addEventListener("load", function () {
         )
       );
 
-
-      //Este objeto se lo pasaremos a la funcion draw de cada figura (Difusa)
-      let material_shader_locations = {
-        positionAttribute: gl.getAttribLocation(program, "a_position"),
-        colorAttribute: gl.getAttribLocation(program, "a_color"),
-        normalAttribute: gl.getAttribLocation(program, "a_normal"),
-        lightPosition: gl.getUniformLocation(program, "u_light_position"),
-        PVM_matrix: gl.getUniformLocation(program, "u_PVM_matrix"),
-        VM_matrix: gl.getUniformLocation(program, "u_VM_matrix"),
-        colorUniformLocation: gl.getUniformLocation(program, "u_color"),
-        texcoordAttribute: gl.getAttribLocation(program, "a_texcoord"),
+      //Este objeto se lo pasaremos a la funcion draw de cada figura (Textura)
+      let texture_shader_locations = {
+        positionAttribute: gl.getAttribLocation(texture_program, "a_position"),
+        colorAttribute: gl.getAttribLocation(texture_program, "a_color"),
+        normalAttribute: gl.getAttribLocation(texture_program, "a_normal"),
+        lightPosition: gl.getUniformLocation(texture_program, "u_light_position"),
+        PVM_matrix: gl.getUniformLocation(texture_program, "u_PVM_matrix"),
+        VM_matrix: gl.getUniformLocation(texture_program, "u_VM_matrix"),
+        colorUniformLocation: gl.getUniformLocation(texture_program, "u_color"),
+        texcoordAttribute: gl.getAttribLocation(texture_program, "a_texcoord"),
       };
 
+      //Creamos el programa para iluminacion difusa
+      let difuse_program = createProgram(
+        gl,
+        createShader(gl, gl.VERTEX_SHADER, document.getElementById("difuse_2d-vertex-shader").text),
+        createShader(gl, gl.FRAGMENT_SHADER, document.getElementById("difuse_2d-fragment-shader").text)
+      );
+
+      //Este objeto se lo pasaremos a la funcion draw de cada figura (Difusa)
+      let difuse_shader_locations = {
+        positionAttribute: gl.getAttribLocation(difuse_program, "a_position"),
+        colorAttribute: gl.getAttribLocation(difuse_program, "a_color"),
+        normalAttribute: gl.getAttribLocation(difuse_program, "a_normal"),
+        lightPosition: gl.getUniformLocation(difuse_program, "u_light_position"),
+        PVM_matrix: gl.getUniformLocation(difuse_program, "u_PVM_matrix"),
+        VM_matrix: gl.getUniformLocation(difuse_program, "u_VM_matrix"),
+        colorUniformLocation: gl.getUniformLocation(difuse_program, "u_color"),
+      }
+
+      ///////////////////////////////////////////ILUMINACION///////////////////////////////////////////////////////////////////////
+
+      //Informacion de la iluminacion direccional
+      let lightPos = [30, 100, 50, 1];
+      let lightPositionBuffer = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, lightPositionBuffer);
+      gl.bufferData(
+        gl.ARRAY_BUFFER,
+        new Float32Array(lightPos),
+        gl.STATIC_DRAW
+      );
+
+      // se activa la prueba de profundidad, esto hace que se utilice el buffer de profundidad para determinar que píxeles se dibujan
+      gl.enable(gl.DEPTH_TEST);
+
+      /////////////////////////////////////CAMARA/////////////////////////////////////////////////////////////////////////////////
+
+      //Se crea la camara principal
+      let camera1 = new Camera(new Vector3(0, 2.5, 25), new Vector3(0, 0, 0), new Vector3(0, 1, 0));
+
+      //Se crea la camara secundaria
+      let camera2 = new Camera(new Vector3(0, 5, 2), new Vector3(0, 0, 0), new Vector3(0, 1, 0));
+
+      //Definimos esta camara para poder cambiarla con el evento de cambio de camara (por defecto esta en la principal)
+      let camera = camera1;
+
+      ////////////////////////////////////Matrices de proyeccion///////////////////////////////////////////////////////////////////
+
+      let aspect = canvas.width / canvas.height
+
+      // Se construye la matriz de proyección en perspectiva
+      let projectionMatrix_perspective = Matrix4.perspective(
+        (75 * Math.PI) / 180,
+        aspect,
+        1,
+        2000
+      );
+
+      // Se construye la matrix de proyeccion ortogonal
+      let projectionMatrix_ortogonal = Matrix4.ortho(-30, 30, -aspect, aspect, 1, 20000)
+
+      let projectionMatrix = projectionMatrix_perspective;
+      let viewProjectionMatrix = Matrix4.multiply(projectionMatrix, camera.getMatrix());
+
+      //Matriz especifica para el skybox
+      let projectionViewMatrix_SKYBOX;
+
       ///////////////////////////////////////////////Creamos las texturas///////////////////////////////////////////////////
+
       let textura_bookshelf = gl.createTexture();
       gl.bindTexture(gl.TEXTURE_2D, textura_bookshelf);
       gl.texImage2D(
@@ -216,93 +275,88 @@ window.addEventListener("load", function () {
       );
       gl.generateMipmap(gl.TEXTURE_2D);
 
-      ///////////////////////////////////////////ILUMINACION///////////////////////////////////////////////////////////////////////
-
-      //Informacion de la iluminacion
-      let lightPos = [3, 1, 5, 1];
-      let lightPositionBuffer = gl.createBuffer();
-      gl.bindBuffer(gl.ARRAY_BUFFER, lightPositionBuffer);
-      gl.bufferData(
-        gl.ARRAY_BUFFER,
-        new Float32Array(lightPos),
-        gl.STATIC_DRAW
+      let textura_creeper_head = gl.createTexture();
+      gl.bindTexture(gl.TEXTURE_2D, textura_creeper_head);
+      gl.texImage2D(
+        gl.TEXTURE_2D,
+        0,
+        gl.RGBA,
+        gl.RGBA,
+        gl.UNSIGNED_BYTE,
+        ImageLoader.getImage(textures[12])
       );
+      gl.generateMipmap(gl.TEXTURE_2D);
 
-      // se activa la prueba de profundidad, esto hace que se utilice el buffer de profundidad para determinar que píxeles se dibujan
-      gl.enable(gl.DEPTH_TEST);
-
-      /////////////////////////////////////CAMARA/////////////////////////////////////////////////////////////////////////////////
-
-      //Se crea la camara principal
-      let camera1 = new Camera(new Vector3(0, 2.5, 25), new Vector3(0, 0, 0), new Vector3(0, 1, 0));
-
-      //Se crea la camara secundaria
-      let camera2 = new Camera(new Vector3(0, 5, 2), new Vector3(0, 0, 0), new Vector3(0, 1, 0));
-
-      //Definimos esta camara para poder cambiarla con el evento de cambio de camara (por defecto esta en la principal)
-      let camera = camera1;
-
-      ////////////////////////////////////Matrices de proyeccion///////////////////////////////////////////////////////////////////
-
-      let aspect = canvas.width / canvas.height
-
-      // Se construye la matriz de proyección en perspectiva
-      let projectionMatrix_perspective = Matrix4.perspective(
-        (75 * Math.PI) / 180,
-        aspect,
-        1,
-        2000
+      let textura_creeper_body = gl.createTexture();
+      gl.bindTexture(gl.TEXTURE_2D, textura_creeper_body);
+      gl.texImage2D(
+        gl.TEXTURE_2D,
+        0,
+        gl.RGBA,
+        gl.RGBA,
+        gl.UNSIGNED_BYTE,
+        ImageLoader.getImage(textures[13])
       );
+      gl.generateMipmap(gl.TEXTURE_2D);
 
-      // Se construye la matrix de proyeccion ortogonal
-      let projectionMatrix_ortogonal = Matrix4.ortho(-30, 30, -aspect, aspect, 1, 20000)
-
-      let projectionMatrix = projectionMatrix_perspective;
-      let viewProjectionMatrix = Matrix4.multiply(projectionMatrix, camera.getMatrix());
-
-      //Matriz especifica para el skybox
-      let projectionViewMatrix_SKYBOX;
+      let textura_creeper_legs = gl.createTexture();
+      gl.bindTexture(gl.TEXTURE_2D, textura_creeper_legs);
+      gl.texImage2D(
+        gl.TEXTURE_2D,
+        0,
+        gl.RGBA,
+        gl.RGBA,
+        gl.UNSIGNED_BYTE,
+        ImageLoader.getImage(textures[14])
+      );
+      gl.generateMipmap(gl.TEXTURE_2D);
 
       ///////////////////////////////////////////Objetos 3D///////////////////////////////////////////////////////////////////////////////
 
+      /**** Creamos los objetos que usaran texturas****/
 
+      //Skybox
+      let skybox = new Skybox(gl, Matrix4.scale(new Vector3(1000, 1000, 1000)));
       //El bloque basico tendra una de dimensiones 5*5*5 (por defecto en el constructor)
-      //Los bloques medios 3*5*5
-
-      // se crean y posicionan los modelos geométricos
-      // let piso = new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(0, -5, 0)), 5, 500, 500);
       let mesaEncantamiento = new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(0, 0, 0)), 3, 5, 5);
-      let mesaEncantamientoLibro = new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.multiply(Matrix4.translate(new Vector3(0, 3.5, 0)), Matrix4.rotateZ(1)), .5, 2.2, 3);
-      let diamante = new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(-20, 0, 30)));
-      let oro = new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(-20, 0, 40)));
-      let hierro = new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(-20, 0, 50)));
-      let cama = new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(-10, 1.5, 45)), 1, 10, 10);
-      let baseCama = new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(-10, 0, 45)), 2, 10, 10);
-      let mesa = new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(1.4, 0, 30)));
-      let cofre = new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.multiply(Matrix4.translate(new Vector3(0, 0, 48)), Matrix4.rotateY(3.14)), 5, 5, 4);
+      let mesaEncantamientoLibro = new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.multiply
+        (Matrix4.translate(new Vector3(0, 3.5, 0)),
+          Matrix4.multiply(Matrix4.rotateY(.5), Matrix4.rotateX(0.5))), .5, 2.2, 3);
+      let diamante = new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(-10, 0, 40)));
+      let oro = new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(-10, 0, 30)));
+      let hierro = new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(-10, 0, 20)));
+
+      let mesa = new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(10, 0, 30)));
+      let cofre = new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(10, 0, 40)), 5, 5, 4);
+      let cama = new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(0, 1.5, 40)), 1, 10, 10);
+      let baseCama = new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(0, 0, 40)), 2, 10, 10);
 
       let portal = [
         //Horizontales
-        new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(25, 0, 30))),
-        new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(25, 0, 35))),
-        new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(25, 0, 40))),
-        new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(25, 0, 45))),
-        new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(25, 20, 40))),
-        new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(25, 20, 35))),
+        new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(-10, 0, -25))),
+        new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(-5, 0, -25))),
+        new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(0, 0, -25))),
+        new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(5, 0, -25))),
+        new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(10, 0, -25))),
+        new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(5, 25, -25))),
+        new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(0, 25, -25))),
+        new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(-5, 25, -25))),
+
 
         //Verticales
-        new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(25, 5, 30))),
-        new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(25, 5, 45))),
-        new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(25, 10, 30))),
-        new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(25, 10, 45))),
-        new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(25, 15, 30))),
-        new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(25, 15, 45))),
-        new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(25, 20, 30))),
-        new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(25, 20, 45))),
-
+        new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(-10, 5, -25))),
+        new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(-10, 10, -25))),
+        new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(-10, 15, -25))),
+        new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(-10, 20, -25))),
+        new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(-10, 25, -25))),
+        new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(10, 5, -25))),
+        new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(10, 10, -25))),
+        new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(10, 15, -25))),
+        new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(10, 20, -25))),
+        new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(10, 25, -25))),
       ];
 
-      let bookshelfModesl = [
+      let bookshelf = [
         new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(5, 0, 10))),    //librero 1
         new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(10, 0, 10))),   //librero 2
         new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(10, 0, 5))),    //librero 3
@@ -320,9 +374,40 @@ window.addEventListener("load", function () {
         new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(-5, 0, 10))),   //librero 15
       ];
 
-      //Funcion que se encarga de dibujar las distintas figuras
+      /**** Creamos los objetos que usaran iluminacion difusa*****/
+      let lanas = [
+        new PrismaRectangular(gl, [0, 1, 0.8, 1], Matrix4.translate(new Vector3(-20, 0, -10))),   //Lana Azul 1
+        new PrismaRectangular(gl, [0, 1, 0.8, 1], Matrix4.translate(new Vector3(-20, 5, -10))),   //Lana Azul 2
+        new PrismaRectangular(gl, [0, 1, 0.8, 1], Matrix4.translate(new Vector3(-20, 10, -10))),  //Lana Azul 3
+        new PrismaRectangular(gl, [1, 0.2, 0.2, 1], Matrix4.translate(new Vector3(-20, 0, 0))),   //Lana Roja1
+        new PrismaRectangular(gl, [1, 0.2, 0.2, 1], Matrix4.translate(new Vector3(-20, 5, 0))),   //Lana Roja1
+        new PrismaRectangular(gl, [1, 0.6, 0.5, 1], Matrix4.translate(new Vector3(-20, 0, 10))),  //Lana Blanca1
+      ];
 
+      let minerales = [
+        new PrismaRectangular(gl, [1, 0.2, 0.2, 1], Matrix4.translate(new Vector3(20, 0, -10))),  //Bloque de Hierro
+        new PrismaRectangular(gl, [0, 1, 0.8, 1], Matrix4.translate(new Vector3(20, 0, 0))),      //Bloque de oro
+        new PrismaRectangular(gl, [0, 1, 0.8, 1], Matrix4.translate(new Vector3(20, 5, 0))),      //Bloque de oro
+        new PrismaRectangular(gl, [0, 1, 0.8, 1], Matrix4.translate(new Vector3(20, 0, 10))),     //Bloque de Diamante
+        new PrismaRectangular(gl, [0, 1, 0.8, 1], Matrix4.translate(new Vector3(20, 5, 10))),     //Bloque de Diamante2
+        new PrismaRectangular(gl, [0, 1, 0.8, 1], Matrix4.translate(new Vector3(20, 10, 10))),    //Bloque de Diamante3
+      ];
+
+      let posicion_creeper = 10;
+      let creeper_head = new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(posicion_creeper, 10, 20)));
+      let creeper_body = new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(posicion_creeper, 4, 20)), 10, 4, 4);
+      let creeper_legs = [
+        new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(posicion_creeper, 0, 22)), 4, 5, 2),
+        new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(posicion_creeper, 0, 18)), 4, 5, 2),
+      ];
+
+      ///////////////////////////////////////////Dibujado de figuras///////////////////////////////////////////////////////////////////////////////
+
+      //Funcion que se encarga de dibujar las distintas figuras
       function draw() {
+
+        //**** DIBUJAMOS PRIMERO LOS OBJETOS QUE USAN TEXTURAS *****/
+
         // se le indica a WebGL cual es el tamaño de la ventana donde se despliegan los gráficos
         gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
         // se limpia la pantalla con un color negro transparente
@@ -331,13 +416,13 @@ window.addEventListener("load", function () {
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
         //En este caso le indicamos que use el programa para iluminacion difusa
-        gl.useProgram(program);
+        gl.useProgram(texture_program);
 
         //Iteramos y dibujamos los libreros de la escena
-        bookshelfModesl.forEach(shelf => {
-          shelf.draw(
+        bookshelf.forEach(shelf => {
+          shelf.drawTexture(
             gl,
-            material_shader_locations,
+            texture_shader_locations,
             lightPos,
             camera.getMatrix(),
             viewProjectionMatrix,
@@ -346,9 +431,9 @@ window.addEventListener("load", function () {
         });
 
         portal.forEach(bloque => {
-          bloque.draw(
+          bloque.drawTexture(
             gl,
-            material_shader_locations,
+            texture_shader_locations,
             lightPos,
             camera.getMatrix(),
             viewProjectionMatrix,
@@ -357,30 +442,36 @@ window.addEventListener("load", function () {
         });
 
         // piso.draw(gl, material_shader_locations, lightPos, camera.getMatrix(), viewProjectionMatrix, textura_pasto);
-        mesaEncantamiento.draw(gl, material_shader_locations, lightPos, camera.getMatrix(), viewProjectionMatrix, textura_mesaEncantamientos);
-        mesaEncantamientoLibro.draw(gl, material_shader_locations, lightPos, camera.getMatrix(), viewProjectionMatrix, textura_libro);
-        diamante.draw(gl, material_shader_locations, lightPos, camera.getMatrix(), viewProjectionMatrix, textura_diamante);
-        oro.draw(gl, material_shader_locations, lightPos, camera.getMatrix(), viewProjectionMatrix, textura_oro);
-        hierro.draw(gl, material_shader_locations, lightPos, camera.getMatrix(), viewProjectionMatrix, textura_hierro);
-        cama.draw(gl, material_shader_locations, lightPos, camera.getMatrix(), viewProjectionMatrix, textura_bed);
-        baseCama.draw(gl, material_shader_locations, lightPos, camera.getMatrix(), viewProjectionMatrix, textura_mesa);
-        mesa.draw(gl, material_shader_locations, lightPos, camera.getMatrix(), viewProjectionMatrix, textura_mesa);
-        cofre.draw(gl, material_shader_locations, lightPos, camera.getMatrix(), viewProjectionMatrix, textura_cofre);
-
-        // let inicio = -20;
-        // for (let i = 0; i < 50; i++) {
-        //   let piso = new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(inicio, -5, inicio)));
-        //   piso.draw(gl, material_shader_locations, lightPos, camera.getMatrix(), viewProjectionMatrix, textura_diamante);
-        //   for (let j = i; j < 5; j++) {
-        //     let piso = new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(inicio * j, -5, inicio * j)));
-        //     piso.draw(gl, material_shader_locations, lightPos, camera.getMatrix(), viewProjectionMatrix, textura_diamante);
-        //   }
-        //   inicio += 5;
-        // }
+        mesaEncantamiento.drawTexture(gl, texture_shader_locations, lightPos, camera.getMatrix(), viewProjectionMatrix, textura_mesaEncantamientos);
+        mesaEncantamientoLibro.drawTexture(gl, texture_shader_locations, lightPos, camera.getMatrix(), viewProjectionMatrix, textura_libro);
+        diamante.drawTexture(gl, texture_shader_locations, lightPos, camera.getMatrix(), viewProjectionMatrix, textura_diamante);
+        oro.drawTexture(gl, texture_shader_locations, lightPos, camera.getMatrix(), viewProjectionMatrix, textura_oro);
+        hierro.drawTexture(gl, texture_shader_locations, lightPos, camera.getMatrix(), viewProjectionMatrix, textura_hierro);
+        cama.drawTexture(gl, texture_shader_locations, lightPos, camera.getMatrix(), viewProjectionMatrix, textura_bed);
+        baseCama.drawTexture(gl, texture_shader_locations, lightPos, camera.getMatrix(), viewProjectionMatrix, textura_mesa);
+        mesa.drawTexture(gl, texture_shader_locations, lightPos, camera.getMatrix(), viewProjectionMatrix, textura_mesa);
+        cofre.drawTexture(gl, texture_shader_locations, lightPos, camera.getMatrix(), viewProjectionMatrix, textura_cofre);
+        //Dibujamos al creeper
+        creeper_head.drawTexture(gl, texture_shader_locations, lightPos, camera.getMatrix(), viewProjectionMatrix, textura_creeper_head);
+        creeper_body.drawTexture(gl, texture_shader_locations, lightPos, camera.getMatrix(), viewProjectionMatrix, textura_creeper_body);
+        creeper_legs.forEach(leg => { leg.drawTexture(gl, texture_shader_locations, lightPos, camera.getMatrix(), viewProjectionMatrix, textura_creeper_legs); })
 
         //Dibujamos el skybox
         projectionViewMatrix_SKYBOX = Matrix4.multiply(projectionMatrix, camera.getMatrix());
         skybox.draw(gl, projectionViewMatrix_SKYBOX);
+
+
+        /**** Cambiamos de programa y dibujamos los objetos con iluminacion difusa****/
+        gl.useProgram(difuse_program);
+
+        //Dibujamos las lanas
+        lanas.forEach(bloque => {
+          bloque.drawDifuse(gl, difuse_shader_locations, lightPos, camera.getMatrix(), viewProjectionMatrix)
+        })
+
+        minerales.forEach(bloque => {
+          bloque.drawDifuse(gl, difuse_shader_locations, lightPos, camera.getMatrix(), viewProjectionMatrix)
+        })
       }
 
       //Primera vez que se llama a draw
@@ -457,11 +548,6 @@ window.addEventListener("load", function () {
         }
         window.requestAnimationFrame(animaGeometria);
       }
-
-      // animarGeometria(skybox, 4000);
-      // geometry.forEach(model => {
-      //   animarGeometria(model);
-      // })
 
       animarGeometria(skybox, 4000)
       animarGeometria(mesaEncantamientoLibro, 250, "y", "+")
