@@ -27,7 +27,8 @@ let textures = [
   "hierro.png",
   "bed.png",
   "mesa.png",
-  "obsidiana.png"
+  "obsidiana.png",
+  "chest.png",
 ];
 
 window.addEventListener("load", function () {
@@ -203,6 +204,18 @@ window.addEventListener("load", function () {
       );
       gl.generateMipmap(gl.TEXTURE_2D);
 
+      let textura_cofre = gl.createTexture();
+      gl.bindTexture(gl.TEXTURE_2D, textura_cofre);
+      gl.texImage2D(
+        gl.TEXTURE_2D,
+        0,
+        gl.RGBA,
+        gl.RGBA,
+        gl.UNSIGNED_BYTE,
+        ImageLoader.getImage(textures[11])
+      );
+      gl.generateMipmap(gl.TEXTURE_2D);
+
       ///////////////////////////////////////////ILUMINACION///////////////////////////////////////////////////////////////////////
 
       //Informacion de la iluminacion
@@ -266,6 +279,7 @@ window.addEventListener("load", function () {
       let cama = new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(-10, 1.5, 45)), 1, 10, 10);
       let baseCama = new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(-10, 0, 45)), 2, 10, 10);
       let mesa = new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(1.4, 0, 30)));
+      let cofre = new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.multiply(Matrix4.translate(new Vector3(0, 0, 48)), Matrix4.rotateY(3.14)), 5, 5, 4);
 
       let portal = [
         //Horizontales
@@ -351,7 +365,18 @@ window.addEventListener("load", function () {
         cama.draw(gl, material_shader_locations, lightPos, camera.getMatrix(), viewProjectionMatrix, textura_bed);
         baseCama.draw(gl, material_shader_locations, lightPos, camera.getMatrix(), viewProjectionMatrix, textura_mesa);
         mesa.draw(gl, material_shader_locations, lightPos, camera.getMatrix(), viewProjectionMatrix, textura_mesa);
+        cofre.draw(gl, material_shader_locations, lightPos, camera.getMatrix(), viewProjectionMatrix, textura_cofre);
 
+        // let inicio = -20;
+        // for (let i = 0; i < 50; i++) {
+        //   let piso = new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(inicio, -5, inicio)));
+        //   piso.draw(gl, material_shader_locations, lightPos, camera.getMatrix(), viewProjectionMatrix, textura_diamante);
+        //   for (let j = i; j < 5; j++) {
+        //     let piso = new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(inicio * j, -5, inicio * j)));
+        //     piso.draw(gl, material_shader_locations, lightPos, camera.getMatrix(), viewProjectionMatrix, textura_diamante);
+        //   }
+        //   inicio += 5;
+        // }
 
         //Dibujamos el skybox
         projectionViewMatrix_SKYBOX = Matrix4.multiply(projectionMatrix, camera.getMatrix());
