@@ -16,10 +16,24 @@ import PrismaRectangular from "./PrismaRectangular.js";
 import Tetraedro from "./Tetraedro.js";
 import Toro from "./Toro.js";
 
+let textures = [
+  "bookshelf.png",
+  "pasto.jpg",
+  "skybox.png",
+  "mesaEncantamientos.png",
+  "libro.png",
+  "diamante.png",
+  "oro.png",
+  "hierro.png",
+  "bed.png",
+  "mesa.png",
+  "obsidiana.png"
+];
+
 window.addEventListener("load", function () {
   ImageLoader.load(
-    // la lista de imágenes que se van a cargar, en este caso solo es una
-    ["bookshelf.png", "pasto.jpg", "skybox.png",],
+    // la lista de imágenes que se van a cargar
+    textures,
     function () {
       // se obtiene una referencia al canvas
       let canvas = document.getElementById("the_canvas");
@@ -69,9 +83,6 @@ window.addEventListener("load", function () {
       };
 
       ///////////////////////////////////////////////Creamos las texturas///////////////////////////////////////////////////
-
-      let textures = ["bookshelf.png", "pasto.jpg", "skybox.png",];
-
       let textura_bookshelf = gl.createTexture();
       gl.bindTexture(gl.TEXTURE_2D, textura_bookshelf);
       gl.texImage2D(
@@ -96,6 +107,102 @@ window.addEventListener("load", function () {
       );
       gl.generateMipmap(gl.TEXTURE_2D);
 
+      let textura_mesaEncantamientos = gl.createTexture();
+      gl.bindTexture(gl.TEXTURE_2D, textura_mesaEncantamientos);
+      gl.texImage2D(
+        gl.TEXTURE_2D,
+        0,
+        gl.RGBA,
+        gl.RGBA,
+        gl.UNSIGNED_BYTE,
+        ImageLoader.getImage(textures[3])
+      );
+      gl.generateMipmap(gl.TEXTURE_2D);
+
+      let textura_libro = gl.createTexture();
+      gl.bindTexture(gl.TEXTURE_2D, textura_libro);
+      gl.texImage2D(
+        gl.TEXTURE_2D,
+        0,
+        gl.RGBA,
+        gl.RGBA,
+        gl.UNSIGNED_BYTE,
+        ImageLoader.getImage(textures[4])
+      );
+      gl.generateMipmap(gl.TEXTURE_2D);
+
+      let textura_diamante = gl.createTexture();
+      gl.bindTexture(gl.TEXTURE_2D, textura_diamante);
+      gl.texImage2D(
+        gl.TEXTURE_2D,
+        0,
+        gl.RGBA,
+        gl.RGBA,
+        gl.UNSIGNED_BYTE,
+        ImageLoader.getImage(textures[5])
+      );
+      gl.generateMipmap(gl.TEXTURE_2D);
+
+      let textura_oro = gl.createTexture();
+      gl.bindTexture(gl.TEXTURE_2D, textura_oro);
+      gl.texImage2D(
+        gl.TEXTURE_2D,
+        0,
+        gl.RGBA,
+        gl.RGBA,
+        gl.UNSIGNED_BYTE,
+        ImageLoader.getImage(textures[6])
+      );
+      gl.generateMipmap(gl.TEXTURE_2D);
+
+      let textura_hierro = gl.createTexture();
+      gl.bindTexture(gl.TEXTURE_2D, textura_hierro);
+      gl.texImage2D(
+        gl.TEXTURE_2D,
+        0,
+        gl.RGBA,
+        gl.RGBA,
+        gl.UNSIGNED_BYTE,
+        ImageLoader.getImage(textures[7])
+      );
+      gl.generateMipmap(gl.TEXTURE_2D);
+
+      let textura_bed = gl.createTexture();
+      gl.bindTexture(gl.TEXTURE_2D, textura_bed);
+      gl.texImage2D(
+        gl.TEXTURE_2D,
+        0,
+        gl.RGBA,
+        gl.RGBA,
+        gl.UNSIGNED_BYTE,
+        ImageLoader.getImage(textures[8])
+      );
+      gl.generateMipmap(gl.TEXTURE_2D);
+
+      let textura_mesa = gl.createTexture();
+      gl.bindTexture(gl.TEXTURE_2D, textura_mesa);
+      gl.texImage2D(
+        gl.TEXTURE_2D,
+        0,
+        gl.RGBA,
+        gl.RGBA,
+        gl.UNSIGNED_BYTE,
+        ImageLoader.getImage(textures[9])
+      );
+      gl.generateMipmap(gl.TEXTURE_2D);
+
+      let textura_obsidiana = gl.createTexture();
+      gl.bindTexture(gl.TEXTURE_2D, textura_obsidiana);
+      gl.texImage2D(
+        gl.TEXTURE_2D,
+        0,
+        gl.RGBA,
+        gl.RGBA,
+        gl.UNSIGNED_BYTE,
+        ImageLoader.getImage(textures[10])
+      );
+      gl.generateMipmap(gl.TEXTURE_2D);
+
       ///////////////////////////////////////////ILUMINACION///////////////////////////////////////////////////////////////////////
 
       //Informacion de la iluminacion
@@ -114,7 +221,7 @@ window.addEventListener("load", function () {
       /////////////////////////////////////CAMARA/////////////////////////////////////////////////////////////////////////////////
 
       //Se crea la camara principal
-      let camera1 = new Camera(new Vector3(0, 2.5, 10), new Vector3(0, 0, 0), new Vector3(0, 1, 0));
+      let camera1 = new Camera(new Vector3(0, 2.5, 25), new Vector3(0, 0, 0), new Vector3(0, 1, 0));
 
       //Se crea la camara secundaria
       let camera2 = new Camera(new Vector3(0, 5, 2), new Vector3(0, 0, 0), new Vector3(0, 1, 0));
@@ -140,18 +247,46 @@ window.addEventListener("load", function () {
       let projectionMatrix = projectionMatrix_perspective;
       let viewProjectionMatrix = Matrix4.multiply(projectionMatrix, camera.getMatrix());
 
-      //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
       //Matriz especifica para el skybox
       let projectionViewMatrix_SKYBOX;
+
+      ///////////////////////////////////////////Objetos 3D///////////////////////////////////////////////////////////////////////////////
+
 
       //El bloque basico tendra una de dimensiones 5*5*5 (por defecto en el constructor)
       //Los bloques medios 3*5*5
 
       // se crean y posicionan los modelos geométricos
-      let piso = new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(0, -5, 0)), 5, 500, 500);
+      // let piso = new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(0, -5, 0)), 5, 500, 500);
       let mesaEncantamiento = new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(0, 0, 0)), 3, 5, 5);
-      let mesaEncantamientoLibro = new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.multiply(Matrix4.translate(new Vector3(0, 3.5, 0)), Matrix4.rotateZ(-15)), 1, 2.5, 3);
+      let mesaEncantamientoLibro = new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.multiply(Matrix4.translate(new Vector3(0, 3.5, 0)), Matrix4.rotateZ(1)), .5, 2.2, 3);
+      let diamante = new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(-20, 0, 30)));
+      let oro = new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(-20, 0, 40)));
+      let hierro = new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(-20, 0, 50)));
+      let cama = new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(-10, 1.5, 45)), 1, 10, 10);
+      let baseCama = new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(-10, 0, 45)), 2, 10, 10);
+      let mesa = new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(1.4, 0, 30)));
+
+      let portal = [
+        //Horizontales
+        new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(25, 0, 30))),
+        new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(25, 0, 35))),
+        new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(25, 0, 40))),
+        new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(25, 0, 45))),
+        new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(25, 20, 40))),
+        new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(25, 20, 35))),
+
+        //Verticales
+        new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(25, 5, 30))),
+        new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(25, 5, 45))),
+        new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(25, 10, 30))),
+        new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(25, 10, 45))),
+        new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(25, 15, 30))),
+        new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(25, 15, 45))),
+        new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(25, 20, 30))),
+        new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(25, 20, 45))),
+
+      ];
 
       let bookshelfModesl = [
         new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(5, 0, 10))),    //librero 1
@@ -194,11 +329,29 @@ window.addEventListener("load", function () {
             viewProjectionMatrix,
             textura_bookshelf
           );
-        })
+        });
 
-        piso.draw(gl, material_shader_locations, lightPos, camera.getMatrix(), viewProjectionMatrix, textura_pasto);
-        mesaEncantamiento.draw(gl, material_shader_locations, lightPos, camera.getMatrix(), viewProjectionMatrix, textura_pasto);
-        mesaEncantamientoLibro.draw(gl, material_shader_locations, lightPos, camera.getMatrix(), viewProjectionMatrix, textura_pasto);
+        portal.forEach(bloque => {
+          bloque.draw(
+            gl,
+            material_shader_locations,
+            lightPos,
+            camera.getMatrix(),
+            viewProjectionMatrix,
+            textura_obsidiana
+          );
+        });
+
+        // piso.draw(gl, material_shader_locations, lightPos, camera.getMatrix(), viewProjectionMatrix, textura_pasto);
+        mesaEncantamiento.draw(gl, material_shader_locations, lightPos, camera.getMatrix(), viewProjectionMatrix, textura_mesaEncantamientos);
+        mesaEncantamientoLibro.draw(gl, material_shader_locations, lightPos, camera.getMatrix(), viewProjectionMatrix, textura_libro);
+        diamante.draw(gl, material_shader_locations, lightPos, camera.getMatrix(), viewProjectionMatrix, textura_diamante);
+        oro.draw(gl, material_shader_locations, lightPos, camera.getMatrix(), viewProjectionMatrix, textura_oro);
+        hierro.draw(gl, material_shader_locations, lightPos, camera.getMatrix(), viewProjectionMatrix, textura_hierro);
+        cama.draw(gl, material_shader_locations, lightPos, camera.getMatrix(), viewProjectionMatrix, textura_bed);
+        baseCama.draw(gl, material_shader_locations, lightPos, camera.getMatrix(), viewProjectionMatrix, textura_mesa);
+        mesa.draw(gl, material_shader_locations, lightPos, camera.getMatrix(), viewProjectionMatrix, textura_mesa);
+
 
         //Dibujamos el skybox
         projectionViewMatrix_SKYBOX = Matrix4.multiply(projectionMatrix, camera.getMatrix());
@@ -285,6 +438,7 @@ window.addEventListener("load", function () {
       //   animarGeometria(model);
       // })
 
+      animarGeometria(skybox, 4000)
       animarGeometria(mesaEncantamientoLibro, 250, "y", "+")
 
       ////////////////////////////////////////////////////////EVENTOS////////////////////////////////////////////////////////////////////
