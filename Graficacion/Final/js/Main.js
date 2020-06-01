@@ -117,6 +117,19 @@ window.addEventListener("load", function () {
         colorUniformLocation: gl.getUniformLocation(especular_program, "u_color"),
       }
 
+      // //Creamos el programa para transparencias
+      // let transparent_program = createProgram(
+      //   gl,
+      //   createShader(gl, gl.VERTEX_SHADER, document.getElementById("transparent_2d-vertex-shader").text),
+      //   createShader(gl, gl.FRAGMENT_SHADER, document.getElementById("transparent_2d-fragment-shader").text)
+      // );
+
+      // let transparent_shader_locations = {
+      //   a_position: gl.getAttribLocation(transparent_program, "a_position"),
+      //   u_color: gl.getUniformLocation(transparent_program, "u_color"),
+      //   u_PVM_matrix: gl.getUniformLocation(transparent_program, "u_PVM_matrix"),
+      // }
+
       ///////////////////////////////////////////ILUMINACION///////////////////////////////////////////////////////////////////////
 
       //Informacion de la iluminacion direccional
@@ -366,7 +379,6 @@ window.addEventListener("load", function () {
         new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(0, 25, -25))),
         new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(-5, 25, -25))),
 
-
         //Verticales
         new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(-10, 5, -25))),
         new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(-10, 10, -25))),
@@ -379,6 +391,8 @@ window.addEventListener("load", function () {
         new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(10, 20, -25))),
         new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(10, 25, -25))),
       ];
+      //Portal
+      let portalEntrada = new PrismaRectangular(gl, [1, 0.2, 0.8, 0.5], Matrix4.translate(new Vector3(0, 13, -25)), 28, 20, 2);
 
       let bookshelf = [
         new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(5, 0, 10))),    //librero 1
@@ -430,8 +444,10 @@ window.addEventListener("load", function () {
       //Funcion que se encarga de dibujar las distintas figuras
       function draw() {
 
-        //**** DIBUJAMOS PRIMERO LOS OBJETOS QUE USAN TEXTURAS *****/
+        //Activamos depth mask para dibujar los objetos opacos
+        gl.depthMask(true);
 
+        //**** DIBUJAMOS PRIMERO LOS OBJETOS QUE USAN TEXTURAS *****/
         // se le indica a WebGL cual es el tamaño de la ventana donde se despliegan los gráficos
         gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
         // se limpia la pantalla con un color negro transparente
@@ -484,15 +500,6 @@ window.addEventListener("load", function () {
         projectionViewMatrix_SKYBOX = Matrix4.multiply(projectionMatrix, camera.getMatrix());
         skybox.draw(gl, projectionViewMatrix_SKYBOX);
 
-
-        /**** Cambiamos de programa y dibujamos los objetos con iluminacion difusa****/
-        gl.useProgram(difuse_program);
-
-        //Dibujamos las lanas
-        lanas.forEach(bloque => {
-          bloque.drawMaterial(gl, difuse_shader_locations, lightPos, camera.getMatrix(), viewProjectionMatrix)
-        })
-
         /**** Cambiamos de programa y dibujamos los objetos con iluminacion especular****/
         gl.useProgram(especular_program);
         gl.uniform3fv(especular_shader_locations.ambientColor, [0.2, 0.2, 0.2]);
@@ -502,6 +509,20 @@ window.addEventListener("load", function () {
         minerales.forEach(bloque => {
           bloque.drawMaterial(gl, especular_shader_locations, lightPos, camera.getMatrix(), viewProjectionMatrix)
         })
+
+        /**** Cambiamos de programa y dibujamos los objetos con iluminacion difusa****/
+        gl.useProgram(difuse_program);
+
+        //Dibujamos las lanas
+        lanas.forEach(bloque => {
+          bloque.drawMaterial(gl, difuse_shader_locations, lightPos, camera.getMatrix(), viewProjectionMatrix)
+        })
+
+        //Habilitamos la mezcla de colores y desactivamos el depthmask para dibujar el objeto transparente
+        gl.enable(gl.BLEND);
+        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
+        gl.depthMask(false);
+        portalEntrada.drawMaterial(gl, difuse_shader_locations, lightPos, camera.getMatrix(), viewProjectionMatrix);
       }
 
       //Primera vez que se llama a draw
