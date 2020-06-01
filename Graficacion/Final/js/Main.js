@@ -94,10 +94,34 @@ window.addEventListener("load", function () {
         colorUniformLocation: gl.getUniformLocation(difuse_program, "u_color"),
       }
 
+      //Creamos el programa para iluminacion especular
+      let especular_program = createProgram(
+        gl,
+        createShader(gl, gl.VERTEX_SHADER, document.getElementById("especular-2d-vertex-shader").text),
+        createShader(gl, gl.FRAGMENT_SHADER, document.getElementById("especular-2d-fragment-shader").text)
+      );
+
+      //Este objeto se lo pasaremos a la funcion draw de cada figura (Especular)
+      let especular_shader_locations = {
+        positionAttribute: gl.getAttribLocation(especular_program, "a_position"),
+        colorAttribute: gl.getAttribLocation(especular_program, "a_color"),
+        normalAttribute: gl.getAttribLocation(especular_program, "a_normal"),
+
+        ambientColor: gl.getUniformLocation(especular_program, "u_ambient_color"),
+        lightPosition: gl.getUniformLocation(especular_program, "u_light_position"),
+        lightColor: gl.getUniformLocation(especular_program, "u_light_color"),
+        shininess: gl.getUniformLocation(especular_program, "u_shininess"),
+
+        PVM_matrix: gl.getUniformLocation(especular_program, "u_PVM_matrix"),
+        VM_matrix: gl.getUniformLocation(especular_program, "u_VM_matrix"),
+        colorUniformLocation: gl.getUniformLocation(especular_program, "u_color"),
+      }
+
       ///////////////////////////////////////////ILUMINACION///////////////////////////////////////////////////////////////////////
 
       //Informacion de la iluminacion direccional
-      let lightPos = [30, 100, 50, 1];
+      //let lightPos = [30, 100, 50, 1]; //Luz para difusa
+      let lightPos = [30, 100, -50, 1]; //luz para especular
       let lightPositionBuffer = gl.createBuffer();
       gl.bindBuffer(gl.ARRAY_BUFFER, lightPositionBuffer);
       gl.bufferData(
@@ -466,11 +490,17 @@ window.addEventListener("load", function () {
 
         //Dibujamos las lanas
         lanas.forEach(bloque => {
-          bloque.drawDifuse(gl, difuse_shader_locations, lightPos, camera.getMatrix(), viewProjectionMatrix)
+          bloque.drawMaterial(gl, difuse_shader_locations, lightPos, camera.getMatrix(), viewProjectionMatrix)
         })
 
+        /**** Cambiamos de programa y dibujamos los objetos con iluminacion especular****/
+        gl.useProgram(especular_program);
+        gl.uniform3fv(especular_shader_locations.ambientColor, [0.2, 0.2, 0.2]);
+        gl.uniform3fv(especular_shader_locations.lightColor, [1, 1, 1]);
+        gl.uniform1f(especular_shader_locations.shininess, 10);
+
         minerales.forEach(bloque => {
-          bloque.drawDifuse(gl, difuse_shader_locations, lightPos, camera.getMatrix(), viewProjectionMatrix)
+          bloque.drawMaterial(gl, especular_shader_locations, lightPos, camera.getMatrix(), viewProjectionMatrix)
         })
       }
 

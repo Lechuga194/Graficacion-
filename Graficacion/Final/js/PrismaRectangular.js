@@ -135,7 +135,7 @@ export default class PrismaRectangular {
 
   }
 
-  drawDifuse(gl, shader_locations, lightPos, viewMatrix, projectionMatrix) {
+  drawMaterial(gl, shader_locations, lightPos, viewMatrix, projectionMatrix) {
 
     //Se activa el buffer de la posicion
     gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer);
