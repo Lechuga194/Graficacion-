@@ -17,7 +17,7 @@ export default class PrismaRectangular {
    * @param {Number} length
    * @param {Matrix4} initial_transform
    */
-  constructor(gl, color, initial_transform, width = 5, height = 5, length = 5) {
+  constructor(gl, color = [0, 1, 0.8, .5], initial_transform, width = 5, height = 5, length = 5) {
     this.gl = gl;
     this.color = color;
     this.width = width;
@@ -135,42 +135,94 @@ export default class PrismaRectangular {
 
   }
 
-  drawMaterial(gl, shader_locations, lightPos, viewMatrix, projectionMatrix) {
+  drawMaterial(gl, shader_locations, lightPos, viewMatrix, projectionMatrix, lightDir) {
 
-    //Se activa el buffer de la posicion
-    gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer);
-    gl.vertexAttribPointer(shader_locations.positionAttribute, 3, gl.FLOAT, false, 0, 0);
-    gl.enableVertexAttribArray(shader_locations.positionAttribute);
+    if (lightDir) {
+      gl.enableVertexAttribArray(shader_locations.positionAttribute);
+      gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer);
+      gl.vertexAttribPointer(shader_locations.positionAttribute, 3, gl.FLOAT, false, 0, 0);
 
-    //Se activa el buffer para las normales
-    gl.enableVertexAttribArray(shader_locations.normalAttribute);
-    gl.bindBuffer(gl.ARRAY_BUFFER, this.normalBuffer);
-    gl.vertexAttribPointer(shader_locations.normalAttribute, 3, gl.FLOAT, false, 0, 0);
 
-    //Buffer para el color
-    gl.enableVertexAttribArray(shader_locations.colorAttribute);
-    gl.bindBuffer(gl.ARRAY_BUFFER, this.colorBuffer);
-    gl.vertexAttribPointer(shader_locations.colorAttribute, 4, gl.FLOAT, false, 0, 0);
-    // se envía la información del color    
-    gl.uniform4fv(shader_locations.colorUniformLocation, this.color);
+      gl.enableVertexAttribArray(shader_locations.normalAttribute);
+      gl.bindBuffer(gl.ARRAY_BUFFER, this.normalBuffer);
+      gl.vertexAttribPointer(shader_locations.normalAttribute, 3, gl.FLOAT, false, 0, 0);
 
-    // se calcula la matriz de transformación de modelo, vista y proyección
-    let viewModelMatrix = Matrix4.multiply(viewMatrix, this.initial_transform);
-    gl.uniformMatrix4fv(shader_locations.VM_matrix, false, viewModelMatrix.toArray());
 
-    // se enviá la dirección de la luz
-    let auxLightPos = new Vector4(lightPos[0], lightPos[1], lightPos[2], lightPos[3])
-    let lightPosView = viewMatrix.multiplyVector(auxLightPos);
-    let lightPosViewArray = lightPosView.toArray();
-    gl.uniform3f(shader_locations.lightPosition, lightPosViewArray[0], lightPosViewArray[1], lightPosViewArray[2]);
+      gl.enableVertexAttribArray(shader_locations.colorAttribute);
+      gl.bindBuffer(gl.ARRAY_BUFFER, this.colorBuffer);
+      gl.vertexAttribPointer(shader_locations.colorAttribute, 4, gl.FLOAT, false, 0, 0);
 
-    // se envía la información de la matriz de transformación del modelo, vista y proyección
-    let projectionViewModelMatrix = Matrix4.multiply(projectionMatrix, viewModelMatrix);
-    gl.uniformMatrix4fv(shader_locations.PVM_matrix, false, projectionViewModelMatrix.toArray());
 
-    // se dibuja
-    gl.drawArrays(gl.TRIANGLES, 0, this.num_elements);
+      // se enviá la información de la matriz de transformación del modelo
+      gl.uniformMatrix4fv(shader_locations.M_matrix, false, this.initial_transform.toArray());
 
+      // se calcula la matriz de transformación de modelo, vista y proyección
+      let viewModelMatrix = Matrix4.multiply(viewMatrix, this.initial_transform);
+      gl.uniformMatrix4fv(shader_locations.VM_matrix, false, viewModelMatrix.toArray());
+
+
+      // se enviá la información de la luz
+      gl.uniform3f(shader_locations.lightPosition, lightPos[0], lightPos[1], lightPos[2]);
+      gl.uniform3f(shader_locations.lightDirection, lightDir[0], lightDir[1], lightDir[2]);
+
+
+      // se envía la información de la matriz de transformación del modelo, vista y proyección
+      let projectionViewModelMatrix = Matrix4.multiply(projectionMatrix, viewModelMatrix);
+      gl.uniformMatrix4fv(shader_locations.PVM_matrix, false, projectionViewModelMatrix.toArray());
+
+      gl.drawArrays(gl.TRIANGLES, 0, this.num_elements);
+    } else {
+
+      //Se activa el buffer de la posicion
+      gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer);
+      gl.vertexAttribPointer(shader_locations.positionAttribute, 3, gl.FLOAT, false, 0, 0);
+      gl.enableVertexAttribArray(shader_locations.positionAttribute);
+
+      //Se activa el buffer para las normales
+      gl.enableVertexAttribArray(shader_locations.normalAttribute);
+      gl.bindBuffer(gl.ARRAY_BUFFER, this.normalBuffer);
+      gl.vertexAttribPointer(shader_locations.normalAttribute, 3, gl.FLOAT, false, 0, 0);
+
+      //Buffer para el color
+      gl.enableVertexAttribArray(shader_locations.colorAttribute);
+      gl.bindBuffer(gl.ARRAY_BUFFER, this.colorBuffer);
+      gl.vertexAttribPointer(shader_locations.colorAttribute, 4, gl.FLOAT, false, 0, 0);
+      // // se envía la información del color    
+      // gl.uniform4fv(shader_locations.colorUniformLocation, this.color);
+
+      // se calcula la matriz de transformación de modelo, vista y proyección
+      let viewModelMatrix = Matrix4.multiply(viewMatrix, this.initial_transform);
+      gl.uniformMatrix4fv(shader_locations.VM_matrix, false, viewModelMatrix.toArray());
+
+      // se enviá la dirección de la luz
+      let auxLightPos = new Vector4(lightPos[0], lightPos[1], lightPos[2], lightPos[3])
+      let lightPosView = viewMatrix.multiplyVector(auxLightPos);
+      let lightPosViewArray = lightPosView.toArray();
+      gl.uniform3f(shader_locations.lightPosition, lightPosViewArray[0], lightPosViewArray[1], lightPosViewArray[2]);
+
+
+      // se envía la información de la matriz de transformación del modelo, vista y proyección
+      let projectionViewModelMatrix = Matrix4.multiply(projectionMatrix, viewModelMatrix);
+      gl.uniformMatrix4fv(shader_locations.PVM_matrix, false, projectionViewModelMatrix.toArray());
+
+      // se dibuja
+      gl.drawArrays(gl.TRIANGLES, 0, this.num_elements);
+    }
+  }
+
+  /**
+   * Metodo para asignar color 
+   * @param {Array} color 
+   */
+  setColor(color) {
+    this.color = color;
+  }
+
+  /**
+   * Metodo para obtener el color
+   */
+  getColor() {
+    return this.color;
   }
 
   /**

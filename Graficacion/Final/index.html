@@ -16,8 +16,8 @@
   <input type="checkbox" id="cambiar_camara">
   <label for="cambiar_camara">Cambiar a camara 2</label>
 
-  <input type="checkbox" id="iniciar_animacion">
-  <label for="iniciar_animacion">Iniciar animación principal</label>
+  <input type="button" id="colores_random">
+  <label for="colores_random">Iniciar animación principal</label>
 
   Controles awsd para moverse
   p/o para panear
@@ -274,6 +274,70 @@
       gl_FragColor = texture2D(u_texture, v_texcoord);
     }
   
+  </script>
+
+  <script id="reflector-vertex" type="vertex-shader">
+    precision mediump float;
+  
+    attribute vec4 a_position;
+    attribute vec4 a_color;
+    attribute vec3 a_normal;
+    
+    uniform mat4 u_PVM_matrix;
+    uniform mat4 u_VM_matrix;
+    uniform mat4 u_M_matrix;
+    
+    // para una luz de reflector se necesita una posición y una dirección
+    uniform vec3 u_light_position;
+    uniform vec3 u_light_direction;
+  
+    varying vec3 v_position;
+    varying vec4 v_color;
+    varying vec3 v_normal;
+  
+    void main() {
+      v_position = vec3( u_M_matrix * a_position );
+      v_normal = vec3( u_M_matrix * vec4(a_normal, 0) );
+  
+      v_color = a_color;
+  
+      gl_Position = u_PVM_matrix * a_position;
+    }
+  </script>
+
+  <script id="reflector-fragment" type="fragment-shader">
+    precision mediump float;
+  
+    uniform vec3 u_light_position;
+    uniform vec3 u_light_direction;
+  
+    varying vec3 v_position;
+    varying vec4 v_color;
+    varying vec3 v_normal;
+  
+    // el ángulo de apertura del reflector
+    float cut_off = 0.33;
+  
+    void main() {
+      vec3 to_light = normalize( u_light_position - v_position );
+  
+      vec3 fragment_normal = normalize(v_normal);
+  
+      // el ángulo que hay entre la dirección de la luz y la dirección de la luz a un vértice de la geometría
+      float theta = dot(to_light, -normalize(u_light_direction));
+  
+      // se determina si el fragmento se encuentra dentro o fuera del cono que determina la luz del reflector
+      float cos_angle;
+      if (theta > cut_off) {
+        cos_angle = max(dot(fragment_normal, to_light), 0.0);
+      }
+      else {
+        cos_angle = 0.0;
+      }
+  
+  
+      gl_FragColor = vec4(vec3(v_color) * cos_angle, v_color.a);
+    }
   </script>
 
 </body>
