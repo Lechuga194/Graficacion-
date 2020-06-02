@@ -45,7 +45,9 @@ window.addEventListener("load", function () {
       //Referencia a la seleccion de camara
       let cambiar_camara = document.getElementById("cambiar_camara");
       //Referencia a checkboc para iniciar la animación
-      let coloresRandom = document.getElementById("colores_random");
+      let switch_luz = document.getElementById("luz");
+      //Referencia para cambiar la luz en tiempo real
+      let luz_posX = document.getElementById("luz_posX");
 
       ///////////////////////////////////////////////////Creacion de programas y sus asignaciones//////////////////////////////
 
@@ -117,12 +119,14 @@ window.addEventListener("load", function () {
         colorUniformLocation: gl.getUniformLocation(especular_program, "u_color"),
       }
 
+      //Creamos el programa para iluminacion de reflector
       let reflector_program = createProgram(
         gl,
         createShader(gl, gl.VERTEX_SHADER, document.getElementById("reflector-vertex").text),
         createShader(gl, gl.FRAGMENT_SHADER, document.getElementById("reflector-fragment").text)
       );
 
+      //Este objeto se lo pasaremos a la funcion draw de cada figura (reflector)
       let reflector_shader_locations = {
         positionAttribute: gl.getAttribLocation(reflector_program, "a_position"),
         colorAttribute: gl.getAttribLocation(reflector_program, "a_color"),
@@ -310,8 +314,12 @@ window.addEventListener("load", function () {
       ///////////////////////////////////////////ILUMINACION///////////////////////////////////////////////////////////////////////
 
       //Informacion de la iluminacion direccional
-      let lightPos = [30, 100, -50, 1];
+      let x = 0;
+      let y = 50;
+      let z = 0;
+      let lightPos = [x, y, z, 1];
       let lightPositionBuffer = gl.createBuffer();
+
       gl.bindBuffer(gl.ARRAY_BUFFER, lightPositionBuffer);
       gl.bufferData(
         gl.ARRAY_BUFFER,
@@ -319,10 +327,9 @@ window.addEventListener("load", function () {
         gl.STATIC_DRAW
       );
 
-
-      let RlightPos = [5, 3, 10, 1];
-      let RlightDir = [-5, -3, 0, 1];
-      let a = new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(0, 1, 0)));
+      //Posicion de la luz de reflector
+      let RlightPos = [0, 10, 50, 1];
+      let RlightDir = [1, -500, -180, 1];
 
       // se activa la prueba de profundidad, esto hace que se utilice el buffer de profundidad para determinar que píxeles se dibujan
       gl.enable(gl.DEPTH_TEST);
@@ -362,6 +369,8 @@ window.addEventListener("load", function () {
       ///////////////////////////////////////////Objetos 3D///////////////////////////////////////////////////////////////////////////////
 
       /**** Creamos los objetos que usaran texturas****/
+
+      let piso = new PrismaRectangular(gl, [0.364, 0.584, 0.098, 1], Matrix4.translate(new Vector3(0, -5, 0)), 1, 200, 200);
 
       //Skybox
       let skybox = new Skybox(gl, Matrix4.scale(new Vector3(1000, 1000, 1000)));
@@ -497,7 +506,6 @@ window.addEventListener("load", function () {
           );
         });
 
-        // piso.draw(gl, material_shader_locations, lightPos, camera.getMatrix(), viewProjectionMatrix, textura_pasto);
         mesaEncantamiento.drawTexture(gl, texture_shader_locations, lightPos, camera.getMatrix(), viewProjectionMatrix, textura_mesaEncantamientos);
         mesaEncantamientoLibro.drawTexture(gl, texture_shader_locations, lightPos, camera.getMatrix(), viewProjectionMatrix, textura_libro);
         diamante.drawTexture(gl, texture_shader_locations, lightPos, camera.getMatrix(), viewProjectionMatrix, textura_diamante);
@@ -527,8 +535,13 @@ window.addEventListener("load", function () {
         })
 
         /**** Cambiamos de programa y dibujamos los objetos con luz de reflector****/
-        gl.useProgram(reflector_program);
-        a.drawMaterial(gl, reflector_shader_locations, RlightPos, camera.getMatrix(), viewProjectionMatrix, RlightDir);
+        if (!switch_luz.checked) {
+          gl.useProgram(reflector_program);
+          piso.drawMaterial(gl, reflector_shader_locations, RlightPos, camera.getMatrix(), viewProjectionMatrix, RlightDir);
+        } else {
+          piso.drawMaterial(gl, especular_shader_locations, lightPos, camera.getMatrix(), viewProjectionMatrix);
+        }
+
 
         /**** Cambiamos de programa y dibujamos los objetos con iluminacion difusa****/
         gl.useProgram(difuse_program);
@@ -625,10 +638,28 @@ window.addEventListener("load", function () {
 
       ////////////////////////////////////////////////////////EVENTOS////////////////////////////////////////////////////////////////////
 
-      //Evento para generar colores aleatorios
-      coloresRandom.addEventListener("click", function () {
+      //No agregue evento para y ya que no cambia la iluminacion
 
-        draw();
+      luz_posX.addEventListener("change", function () {
+        x = luz_posX.value;
+        lightPos = [x, y, z, 1];
+        gl.bindBuffer(gl.ARRAY_BUFFER, lightPositionBuffer);
+        gl.bufferData(
+          gl.ARRAY_BUFFER,
+          new Float32Array(lightPos),
+          gl.STATIC_DRAW
+        );
+      })
+
+      luz_posZ.addEventListener("change", function () {
+        z = luz_posX.value;
+        lightPos = [x, y, z, 1];
+        gl.bindBuffer(gl.ARRAY_BUFFER, lightPositionBuffer);
+        gl.bufferData(
+          gl.ARRAY_BUFFER,
+          new Float32Array(lightPos),
+          gl.STATIC_DRAW
+        );
       })
 
       //Evento para pintar en ortogonal

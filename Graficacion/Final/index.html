@@ -16,8 +16,14 @@
   <input type="checkbox" id="cambiar_camara">
   <label for="cambiar_camara">Cambiar a camara 2</label>
 
-  <input type="button" id="colores_random">
-  <label for="colores_random">Iniciar animación principal</label>
+  <input type="checkbox" id="luz">
+  <label for="luz">Encender Luz </label>
+
+  <input type="number" id="luz_posX">
+  <label for="luz_posX">Introduce la posicion de la luz X</label>
+
+  <input type="number" id="luz_posZ">
+  <label for="luz_posZ">Introduce la posicion de la luz Z</label>
 
   Controles awsd para moverse
   p/o para panear
@@ -276,6 +282,7 @@
   
   </script>
 
+  <!-- Programas para iluminacion de reflector -->
   <script id="reflector-vertex" type="vertex-shader">
     precision mediump float;
   
@@ -316,7 +323,7 @@
     varying vec3 v_normal;
   
     // el ángulo de apertura del reflector
-    float cut_off = 0.33;
+    float cut_off = 0.2;
   
     void main() {
       vec3 to_light = normalize( u_light_position - v_position );
@@ -335,8 +342,8 @@
         cos_angle = 0.0;
       }
   
-  
-      gl_FragColor = vec4(vec3(v_color) * cos_angle, v_color.a);
+      //Color de luz verde
+      gl_FragColor = vec4(vec3(0.364, 0.584, 0.098) * cos_angle, v_color.a);
     }
   </script>
 
