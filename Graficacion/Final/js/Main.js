@@ -40,14 +40,28 @@ window.addEventListener("load", function () {
       // si el navegador no soporta WebGL la variable gl no está definida
       if (!gl) throw "WebGL no soportado";
 
+      /**** Referencias a elementos html ****/
+
       //Referencia al checkbox para vista ortogonal
       let ortogonal = document.getElementById("ortogonal");
       //Referencia a la seleccion de camara
       let cambiar_camara = document.getElementById("cambiar_camara");
       //Referencia a checkboc para iniciar la animación
       let switch_luz = document.getElementById("luz");
-      //Referencia para cambiar la luz en tiempo real
+      //Referencia para cambiar la luz en tiempo real (direccional)
       let luz_posX = document.getElementById("luz_posX");
+      //Referencia para cambiar la luz en tiempo real (direccional)
+      let luz_posY = document.getElementById("luz_posY");
+      //Referencia para cambiar la luz en tiempo real (direccional)
+      let luz_posZ = document.getElementById("luz_posZ");
+      //Referencia para cambiar la luz en tiempo real (reflector)
+      let luz_reflector_posX = document.getElementById("reflector_luz_posX");
+      //Referencia para cambiar la luz en tiempo real (reflector)
+      let luz_reflector_posY = document.getElementById("reflector_luz_posY");
+      //Referencia para cambiar la luz en tiempo real (reflector)
+      let luz_reflector_posZ = document.getElementById("reflector_luz_posZ");
+      //Referencia al checkbox para la animación de la luz
+      let animacion_luz = document.getElementById("animacion_luz");
 
       ///////////////////////////////////////////////////Creacion de programas y sus asignaciones//////////////////////////////
 
@@ -329,7 +343,7 @@ window.addEventListener("load", function () {
 
       //Posicion de la luz de reflector
       let RlightPos = [0, 10, 50, 1];
-      let RlightDir = [1, -500, -180, 1];
+      let RlightDir = [1, -500, 0, 1];
 
       // se activa la prueba de profundidad, esto hace que se utilice el buffer de profundidad para determinar que píxeles se dibujan
       gl.enable(gl.DEPTH_TEST);
@@ -563,7 +577,7 @@ window.addEventListener("load", function () {
 
       //////////////////////////////////////////ANIMACION DE GEOMETRIA///////////////////////////////////////////////////////////////////
       /**
-       * Funcion para animar los objetos 3d de la escena NOTA: Estas animaciones no se pueden detener en tiempo de ejecucion
+       * Funcion para animar los objetos 3d de la escena ANIMACIONES AUTOMATICAS
        * newTransform = Matrix4.multiply(Matrix4.rotateX(-angle), currentTransform); //Gira como reloj (viendolo desde el lateral)
        * newTransform = Matrix4.multiply(Matrix4.rotateY(-angle), currentTransform); //Gira como carro derrapando (piso)
        * newTransform = Matrix4.multiply(Matrix4.rotateZ(-angle), currentTransform); //Gira como reloj (frente mio)
@@ -582,13 +596,11 @@ window.addEventListener("load", function () {
         let lastTime = Date.now();
         let current = 0;
         let elapsed = 0;
-        let max_elapsed_wait = 30 / 1000;
-        let counter_time = 10000;
+        let max_elapsed_wait = 30 / 1;
+        let counter_time = 5000;
         let angle_incr = Math.PI / velocidad;
         let currentTransform = obj.getTransform();
         let newTransform;
-        let id;
-
         function animaGeometria() {
           current = Date.now();
           elapsed = (current - lastTime) / 1000;
@@ -633,33 +645,72 @@ window.addEventListener("load", function () {
         window.requestAnimationFrame(animaGeometria);
       }
 
+      let angleMinus = 0;
+      let angleMayor = 0;
+      let id;
+      function animacionReflector() {
+        if (angleMinus <= 0 && angleMinus > -100) {
+          angleMinus--;
+          RlightDir[2] = angleMinus;
+          angleMayor = angleMinus;
+        } else {
+          if (angleMinus == -100 && angleMayor <= 0) {
+            RlightDir[2] = angleMayor;
+            angleMayor++;
+          } else {
+            angleMayor = 0;
+            angleMinus = 0;
+          }
+        }
+        id = window.requestAnimationFrame(animacionReflector);
+      }
+
+      //Animaciones automaticas
       animarGeometria(skybox, 4000)
       animarGeometria(mesaEncantamientoLibro, 250, "y", "+")
 
+
       ////////////////////////////////////////////////////////EVENTOS////////////////////////////////////////////////////////////////////
 
-      //No agregue evento para y ya que no cambia la iluminacion
-
-      luz_posX.addEventListener("change", function () {
-        x = luz_posX.value;
-        lightPos = [x, y, z, 1];
-        gl.bindBuffer(gl.ARRAY_BUFFER, lightPositionBuffer);
-        gl.bufferData(
-          gl.ARRAY_BUFFER,
-          new Float32Array(lightPos),
-          gl.STATIC_DRAW
-        );
+      animacion_luz.addEventListener("change", function () {
+        if (animacion_luz.checked) {
+          window.requestAnimationFrame(animacionReflector);
+        } else {
+          window.cancelAnimationFrame(id)
+        }
       })
 
-      luz_posZ.addEventListener("change", function () {
-        z = luz_posX.value;
+      //Evento para cambiar la iluminacion en el eje X (direccional)
+      luz_posX.addEventListener("change", function (event) {
+        x = luz_posX.value;
         lightPos = [x, y, z, 1];
-        gl.bindBuffer(gl.ARRAY_BUFFER, lightPositionBuffer);
-        gl.bufferData(
-          gl.ARRAY_BUFFER,
-          new Float32Array(lightPos),
-          gl.STATIC_DRAW
-        );
+      })
+
+      //Evento para cambiar la iluminacion en el eje Y (direccional)
+      luz_posY.addEventListener("change", function () {
+        y = luz_posY.value;
+        lightPos = [x, y, z, 1];
+      })
+
+      //Evento para cambiar la iluminacion en el eje Z (direccional)
+      luz_posZ.addEventListener("change", function () {
+        z = luz_posZ.value;
+        lightPos = [x, y, z, 1];
+      })
+
+      //Evento para cambiar la iluminacion en el eje X (reflector)
+      luz_reflector_posX.addEventListener("change", function () {
+        RlightPos[0] = luz_reflector_posX.value;
+      })
+
+      //Evento para cambiar la iluminacion en el eje X (reflector)
+      luz_reflector_posY.addEventListener("change", function () {
+        RlightPos[1] = luz_reflector_posY.value;
+      })
+
+      //Evento para cambiar la iluminacion en el eje X (reflector)
+      luz_reflector_posZ.addEventListener("change", function () {
+        RlightPos[2] = luz_reflector_posZ.value;
       })
 
       //Evento para pintar en ortogonal
