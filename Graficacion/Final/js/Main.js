@@ -16,7 +16,7 @@ import PrismaRectangular from "./PrismaRectangular.js";
 //Arreglo que contiene todas las texturas de la escena
 let textures = [
   "bookshelf.png",
-  "pasto.jpg",
+  "madera.png",
   "skybox.png",
   "mesaEncantamientos.png",
   "libro.png",
@@ -32,6 +32,13 @@ let textures = [
   "creeper_legs.png"
 ];
 
+//Desactiva el scroll en la pagina con las flechas de direccion
+window.addEventListener("keydown", function (e) {
+  if ([32, 37, 38, 39, 40].indexOf(e.keyCode) > -1) {
+    e.preventDefault();
+  }
+}, false);
+
 window.addEventListener("load", function () {
   ImageLoader.load(
     // la lista de imágenes que se van a cargar como texturas
@@ -39,6 +46,8 @@ window.addEventListener("load", function () {
     function () {
       // se obtiene una referencia al canvas
       let canvas = document.getElementById("the_canvas");
+
+      canvas.width = window.innerWidth;
 
       // se obtiene una referencia al contexto de render de WebGL
       const gl = canvas.getContext("webgl");
@@ -177,8 +186,8 @@ window.addEventListener("load", function () {
       );
       gl.generateMipmap(gl.TEXTURE_2D);
 
-      let textura_pasto = gl.createTexture();
-      gl.bindTexture(gl.TEXTURE_2D, textura_pasto);
+      let textura_madera = gl.createTexture();
+      gl.bindTexture(gl.TEXTURE_2D, textura_madera);
       gl.texImage2D(
         gl.TEXTURE_2D,
         0,
@@ -395,7 +404,7 @@ window.addEventListener("load", function () {
 
       /**** Creamos los objetos que usaran texturas****/
 
-      let piso = new PrismaRectangular(gl, [0.364, 0.584, 0.098, 1], Matrix4.translate(new Vector3(0, -5, 0)), 1, 200, 200);
+      let piso = new PrismaRectangular(gl, [0.364, 0.584, 0.098, 1], Matrix4.translate(new Vector3(0, -2.5, 0)), 0, 200, 200);
 
       //Skybox
       let skybox = new Skybox(gl, Matrix4.scale(new Vector3(1000, 1000, 1000)));
@@ -409,8 +418,8 @@ window.addEventListener("load", function () {
       let hierro = new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(-10, 0, 20)));
       let mesa = new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(10, 0, 30)));
       let cofre = new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(10, 0, 40)), 5, 5, 4);
-      let cama = new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(0, 1.5, 40)), 1, 10, 10);
-      let baseCama = new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(0, 0, 40)), 2, 10, 10);
+      let cama = new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(0, 0.55, 40)), 2, 10, 10);
+      let baseCama = new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(0, -2.4, 40)), 4, 10, 10);
 
       let portal = [
         //Horizontales
@@ -537,7 +546,7 @@ window.addEventListener("load", function () {
         oro.drawTexture(gl, texture_shader_locations, lightPos, camera.getMatrix(), viewProjectionMatrix, textura_oro);
         hierro.drawTexture(gl, texture_shader_locations, lightPos, camera.getMatrix(), viewProjectionMatrix, textura_hierro);
         cama.drawTexture(gl, texture_shader_locations, lightPos, camera.getMatrix(), viewProjectionMatrix, textura_bed);
-        baseCama.drawTexture(gl, texture_shader_locations, lightPos, camera.getMatrix(), viewProjectionMatrix, textura_mesa);
+        baseCama.drawTexture(gl, texture_shader_locations, lightPos, camera.getMatrix(), viewProjectionMatrix, textura_madera);
         mesa.drawTexture(gl, texture_shader_locations, lightPos, camera.getMatrix(), viewProjectionMatrix, textura_mesa);
         cofre.drawTexture(gl, texture_shader_locations, lightPos, camera.getMatrix(), viewProjectionMatrix, textura_cofre);
 
