@@ -1,3 +1,9 @@
+/**
+ * Amaya López Dulce Fernanda | 314195856
+ * Lechuga Martinez Jose Eduardo | 314325749
+ * Proyecto final - Graficación por computadora 2020-2
+ */
+
 // Se importan las clases a utilizar
 import Matrix4 from "./Matrix4.js";
 import Vector3 from "./Vector3.js";
@@ -62,6 +68,8 @@ window.addEventListener("load", function () {
       let luz_reflector_posZ = document.getElementById("reflector_luz_posZ");
       //Referencia al checkbox para la animación de la luz
       let animacion_luz = document.getElementById("animacion_luz");
+      //Referencia al checkbox para el movimiento automatico de la camara
+      let recorrido = document.getElementById("recorrido");
 
       ///////////////////////////////////////////////////Creacion de programas y sus asignaciones//////////////////////////////
 
@@ -329,8 +337,8 @@ window.addEventListener("load", function () {
 
       //Informacion de la iluminacion direccional
       let x = 0;
-      let y = 50;
-      let z = 0;
+      let y = 10;
+      let z = -50;
       let lightPos = [x, y, z, 1];
       let lightPositionBuffer = gl.createBuffer();
 
@@ -355,6 +363,9 @@ window.addEventListener("load", function () {
 
       //Se crea la camara secundaria
       let camera2 = new Camera(new Vector3(0, 5, 2), new Vector3(0, 0, 0), new Vector3(0, 1, 0));
+
+      //Se crea la camara del recorrido autonomo
+      let cameraAutonoma = new Camera(new Vector3(0, 2, 50), new Vector3(0, 0, 0), new Vector3(0, 1, 0));
 
       //Definimos esta camara para poder cambiarla con el evento de cambio de camara (por defecto esta en la principal)
       let camera = camera1;
@@ -471,13 +482,13 @@ window.addEventListener("load", function () {
 
       ];
 
-      let posicion_creeper = 10;
-      let creeper_head = new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(posicion_creeper, 10, 20)));
-      let creeper_body = new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(posicion_creeper, 4, 20)), 10, 4, 4);
-      let creeper_legs = [
-        new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(posicion_creeper, 0, 22)), 4, 5, 2),
-        new PrismaRectangular(gl, [1, 0.2, 0.3, 1], Matrix4.translate(new Vector3(posicion_creeper, 0, 18)), 4, 5, 2),
-      ];
+      //Modelos para el creeper (dejamos la posicion explicita para poder moverlo de forma mas facil)
+      let creeper_head = new PrismaRectangular(gl, [1, 0.2, 0.3, 1], undefined, 5, 5, 5, new Vector3(10, 10, 20));
+      let creeper_body = new PrismaRectangular(gl, [1, 0.2, 0.3, 1], undefined, 10, 4, 4, new Vector3(10, 4, 20));
+      let creeper_front_leg = new PrismaRectangular(gl, [1, 0.2, 0.3, 1], undefined, 4, 5, 2, new Vector3(10, 0, 22));
+      let creeper_back_leg = new PrismaRectangular(gl, [1, 0.2, 0.3, 1], undefined, 4, 5, 2, new Vector3(10, 0, 18));
+      //Agregamos las partes a un arreglo para simplificar el manejo
+      let creeper_movement = [creeper_head, creeper_body, creeper_front_leg, creeper_back_leg];
 
       ///////////////////////////////////////////Dibujado de figuras///////////////////////////////////////////////////////////////////////////////
       //Funcion que se encarga de dibujar las distintas figuras
@@ -529,10 +540,12 @@ window.addEventListener("load", function () {
         baseCama.drawTexture(gl, texture_shader_locations, lightPos, camera.getMatrix(), viewProjectionMatrix, textura_mesa);
         mesa.drawTexture(gl, texture_shader_locations, lightPos, camera.getMatrix(), viewProjectionMatrix, textura_mesa);
         cofre.drawTexture(gl, texture_shader_locations, lightPos, camera.getMatrix(), viewProjectionMatrix, textura_cofre);
+
         //Dibujamos al creeper
         creeper_head.drawTexture(gl, texture_shader_locations, lightPos, camera.getMatrix(), viewProjectionMatrix, textura_creeper_head);
         creeper_body.drawTexture(gl, texture_shader_locations, lightPos, camera.getMatrix(), viewProjectionMatrix, textura_creeper_body);
-        creeper_legs.forEach(leg => { leg.drawTexture(gl, texture_shader_locations, lightPos, camera.getMatrix(), viewProjectionMatrix, textura_creeper_legs); })
+        creeper_front_leg.drawTexture(gl, texture_shader_locations, lightPos, camera.getMatrix(), viewProjectionMatrix, textura_creeper_legs);
+        creeper_back_leg.drawTexture(gl, texture_shader_locations, lightPos, camera.getMatrix(), viewProjectionMatrix, textura_creeper_legs);
 
         //Dibujamos el skybox
         projectionViewMatrix_SKYBOX = Matrix4.multiply(projectionMatrix, camera.getMatrix());
@@ -645,9 +658,14 @@ window.addEventListener("load", function () {
         window.requestAnimationFrame(animaGeometria);
       }
 
+      //Animaciones automaticas
+      animarGeometria(skybox, 4000)
+      animarGeometria(mesaEncantamientoLibro, 250, "y", "+")
+
+      //Animacion de iluminacion de reflector
       let angleMinus = 0;
       let angleMayor = 0;
-      let id;
+      let id_animacion_reflector;
       function animacionReflector() {
         if (angleMinus <= 0 && angleMinus > -100) {
           angleMinus--;
@@ -662,39 +680,85 @@ window.addEventListener("load", function () {
             angleMinus = 0;
           }
         }
-        id = window.requestAnimationFrame(animacionReflector);
+        id_animacion_reflector = window.requestAnimationFrame(animacionReflector);
       }
 
-      //Animaciones automaticas
-      animarGeometria(skybox, 4000)
-      animarGeometria(mesaEncantamientoLibro, 250, "y", "+")
+      //Animacion de recorrido automatico 
+      let id_animacion_camara;
+      let velocidad = 0.1;
+      let currentPosition, newPosition;
+      function animacionCamara() {
+        currentPosition = camera.getPos();
+
+        if (currentPosition.y < 6) {
+          newPosition = Vector3.add(currentPosition, new Vector3(0, velocidad, 0));
+          camera.setPos(newPosition)
+          draw();
+        } else {
+          if (currentPosition.z > 4) {
+            newPosition = Vector3.add(currentPosition, new Vector3(0, 0, -velocidad));
+            camera.setPos(newPosition);
+            draw();
+          } else {
+            if (currentPosition.x < 15) {
+              newPosition = Vector3.add(currentPosition, new Vector3(velocidad, 0, 0));
+              camera.setPos(newPosition);
+              draw();
+            } else {
+              if (currentPosition.z > -30) {
+                newPosition = Vector3.add(currentPosition, new Vector3(0, 0, -velocidad));
+                camera.setPos(newPosition);
+                draw();
+              }
+
+            }
+          }
+
+        }
+        id_animacion_camara = window.requestAnimationFrame(animacionCamara);
+      }
 
 
       ////////////////////////////////////////////////////////EVENTOS////////////////////////////////////////////////////////////////////
 
+      //Evento para el recorrido automatico
+      recorrido.addEventListener("change", function () {
+        if (recorrido.checked) {
+          camera = cameraAutonoma;
+          window.requestAnimationFrame(animacionCamara);
+        } else {
+          window.cancelAnimationFrame(id_animacion_camara)
+          //Regresamos la camara a su posicion original
+          cameraAutonoma = new Camera(new Vector3(0, 2, 50), new Vector3(0, 0, 0), new Vector3(0, 1, 0));
+          //Cambiamos a la camara principal
+          camera = camera1;
+        }
+      })
+
+      //Evento para iniciar la animacion de la luz
       animacion_luz.addEventListener("change", function () {
         if (animacion_luz.checked) {
           window.requestAnimationFrame(animacionReflector);
         } else {
-          window.cancelAnimationFrame(id)
+          window.cancelAnimationFrame(id_animacion_reflector)
         }
       })
 
       //Evento para cambiar la iluminacion en el eje X (direccional)
       luz_posX.addEventListener("change", function (event) {
-        x = luz_posX.value;
+        x = Number(luz_posX.value);
         lightPos = [x, y, z, 1];
       })
 
       //Evento para cambiar la iluminacion en el eje Y (direccional)
       luz_posY.addEventListener("change", function () {
-        y = luz_posY.value;
+        y = Number(luz_posY.value);
         lightPos = [x, y, z, 1];
       })
 
       //Evento para cambiar la iluminacion en el eje Z (direccional)
       luz_posZ.addEventListener("change", function () {
-        z = luz_posZ.value;
+        z = Number(luz_posZ.value);
         lightPos = [x, y, z, 1];
       })
 
@@ -735,6 +799,68 @@ window.addEventListener("load", function () {
       })
 
       /**
+       * Eventos para manejar al creeper
+       */
+      window.addEventListener("keydown", (evt) => {
+
+        let current_pos, new_pos;
+
+        //Caso para mover el creeper hacia enfrente con la tecla w
+        if (evt.key == "w") {
+          creeper_movement.forEach(part => {
+            current_pos = part.getPosition();
+            new_pos = new Vector3(current_pos.x, current_pos.y, current_pos.z + 0.5)
+            part.setPosition(new_pos);
+          })
+        }
+
+        //Caso para mover el creeper hacia atras con la tecla s
+        if (evt.key == "s") {
+          creeper_movement.forEach(part => {
+            current_pos = part.getPosition();
+            new_pos = new Vector3(current_pos.x, current_pos.y, current_pos.z - 0.5)
+            part.setPosition(new_pos);
+          })
+        }
+
+        //Caso para mover el creeper hacia la izquierda con la tecla a
+        if (evt.key == "a") {
+          creeper_movement.forEach(part => {
+            current_pos = part.getPosition();
+            new_pos = new Vector3(current_pos.x - 0.5, current_pos.y, current_pos.z)
+            part.setPosition(new_pos);
+          })
+        }
+
+        //Caso para mover el creeper hacia la derecha con la tecla d
+        if (evt.key == "d") {
+          creeper_movement.forEach(part => {
+            current_pos = part.getPosition();
+            new_pos = new Vector3(current_pos.x + 0.5, current_pos.y, current_pos.z)
+            part.setPosition(new_pos);
+          })
+        }
+
+        //Caso para mover el creeper hacia arriba con la tecla q
+        if (evt.key == "q") {
+          creeper_movement.forEach(part => {
+            current_pos = part.getPosition();
+            new_pos = new Vector3(current_pos.x, current_pos.y + 0.5, current_pos.z)
+            part.setPosition(new_pos);
+          })
+        }
+
+        //Caso para mover el creeper hacia abajo con la tecla e
+        if (evt.key == "e") {
+          creeper_movement.forEach(part => {
+            current_pos = part.getPosition();
+            new_pos = new Vector3(current_pos.x, current_pos.y - 0.5, current_pos.z)
+            part.setPosition(new_pos);
+          })
+        }
+      })
+
+      /**
        * Eventos para manejar la camara con el teclado
        */
       window.addEventListener("keydown", (evt) => {
@@ -746,46 +872,55 @@ window.addEventListener("load", function () {
         //Variable para alejar o aumentar el zoom 
         let distancia = 20;
 
-        if (evt.key == "w") {
+        //Caso para mover la camara hacia arriba con las flechas
+        if (evt.keyCode == 38) {
           newPosition = Vector3.add(currentPosition, new Vector3(0, velocidad, 0));
           camera.setPos(newPosition)
           draw();
         }
-        if (evt.key == "s") {
+        //Caso para mover la camara hacia abajo con las flechas
+        if (evt.keyCode == 40) {
           newPosition = Vector3.add(currentPosition, new Vector3(0, -velocidad, 0));
           camera.setPos(newPosition)
           draw();
         }
-        if (evt.key == "a") {
+        //Caso para mover la camara a la izquierda con las flechas
+        if (evt.keyCode == 37) {
           newPosition = Vector3.add(currentPosition, new Vector3(-velocidad, 0, 0));
           camera.setPos(newPosition)
           draw();
         }
-        if (evt.key == "d") {
+        //Caso para mover la camara a la derecha con las flechas
+        if (evt.keyCode == 39) {
           newPosition = Vector3.add(currentPosition, new Vector3(velocidad, 0, 0));
           camera.setPos(newPosition)
           draw();
         }
+        //Caso para el paneo de la camara
         if (evt.key == "o") {
           newPosition = Vector3.add(currentPosition, new Vector3(0, 0, -velocidad));
           camera.setPos(newPosition)
           draw();
         }
+        //Caso para el paneo de la camara
         if (evt.key == "p") {
           newPosition = Vector3.add(currentPosition, new Vector3(0, 0, velocidad));
           camera.setPos(newPosition)
           draw();
         }
+        //Caso para alejar la camara
         if (evt.key == "x") {
           newPosition = Vector3.add(currentPosition, new Vector3(currentPosition.x / distancia, currentPosition.y / distancia, currentPosition.z / distancia));
           camera.setPos(newPosition)
           draw();
         }
+        //Caso para el zoom de la camara
         if (evt.key == "z") {
           newPosition = Vector3.add(currentPosition, new Vector3(-currentPosition.x / distancia, -currentPosition.y / distancia, -currentPosition.z / distancia));
           camera.setPos(newPosition)
           draw();
         }
+        //Caso para visualizar el skybox desde fuera
         if (evt.key == "b") {
           newPosition = new Vector3(1500, 500, 1500)
           camera.setPos(newPosition)

@@ -1,7 +1,7 @@
 /**
  * Amaya López Dulce Fernanda | 314195856
  * Lechuga Martinez Jose Eduardo | 314325749
- * Practica 4 - Graficación por computadora 2020-2
+ * Proyecto final - Graficación por computadora 2020-2
  */
 
 import Matrix4 from "./Matrix4.js";
@@ -17,17 +17,20 @@ export default class PrismaRectangular {
    * @param {Number} length
    * @param {Matrix4} initial_transform
    */
-  constructor(gl, color = [0, 1, 0.8, .5], initial_transform, width = 5, height = 5, length = 5) {
+  constructor(gl, color = [0, 1, 0.8, .5], initial_transform, width = 5, height = 5, length = 5, position) {
     this.gl = gl;
     this.color = color;
     this.width = width;
     this.height = height;
     this.length = length;
-    this.initial_transform = initial_transform;
-    this.activarAnimacion = false;
 
-    // se guarda la referencia a la transformación incial, en caso de que no se reciba una matriz, se asigna la matriz identidad
-    this.initial_transform = initial_transform || Matrix4.identity();
+    if (position) {
+      this.position = position;
+      this.initial_transform = Matrix4.translate(position);
+    } else {
+      // se guarda la referencia a la transformación incial, en caso de que no se reciba una matriz, se asigna la matriz identidad
+      this.initial_transform = initial_transform || Matrix4.identity();
+    }
 
     //Buffer para los vertices
     this.positionBuffer = gl.createBuffer();
@@ -72,6 +75,22 @@ export default class PrismaRectangular {
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
 
     this.num_elements = vertices.length;
+  }
+
+  /**
+   * Regresa la posicion 
+   */
+  getPosition() {
+    return this.position;
+  }
+
+  /**
+   * Asigna la nueva posicion
+   * @param {Vector3} position 
+   */
+  setPosition(position) {
+    this.initial_transform = Matrix4.translate(position);
+    this.position = position;
   }
 
   /**

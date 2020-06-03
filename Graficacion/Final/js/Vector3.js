@@ -1,7 +1,7 @@
 /**
  * Amaya López Dulce Fernanda | 314195856
  * Lechuga Martinez Jose Eduardo | 314325749
- * Practica 4 - Graficación por computadora 2020-2
+ * Proyecto final - Graficación por computadora 2020-2
  */
 
 /**

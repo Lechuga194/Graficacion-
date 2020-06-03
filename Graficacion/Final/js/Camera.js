@@ -1,3 +1,9 @@
+/**
+ * Amaya López Dulce Fernanda | 314195856
+ * Lechuga Martinez Jose Eduardo | 314325749
+ * Proyecto final - Graficación por computadora 2020-2
+ */
+
 import Matrix4 from "./Matrix4.js";
 import Vector3 from "./Vector3.js";
 
